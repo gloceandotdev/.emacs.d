@@ -54,6 +54,9 @@
 ;; GENERAL SETTINGS
 ;; -----------------------------------------------------------------------------
 
+;; Set default font
+(add-to-list 'default-frame-alist '(font . "JetBrainsMono Nerd Font-14"))
+
 ;; Basic UI and editing preferences
 (setq-default cursor-type '(box . 2) ; Set cursor to a blinking box
               fill-column 80 ; Set a line-wrap guide at 80 chars
@@ -155,13 +158,8 @@
 ;; UI ENHANCEMENTS AND APPEARANCE
 ;; -----------------------------------------------------------------------------
 
-;; Autothemer, dependency for the rose pine theme
-(use-package autothemer)
-
-;; Rose Pine theme
-(use-package rose-pine-color-theme
-  :straight (rose-pine-color-theme :type git :host github :repo "thongpv87/rose-pine-emacs"
-                                   :files ("*.el")))
+;; Load the custom Rose Pine Modus theme
+(load-file (expand-file-name "rose-pine-modus.el" user-emacs-directory))
 
 ;; Nerd icons
 (use-package nerd-icons)
@@ -221,25 +219,13 @@
   :custom
   (doom-modeline-icon t)
   (doom-modeline-major-mode-icon t)
-  (doom-modeline-major-mode-color-icon t)
+  (doom-modeline-major-mode-color-icon t) 
   (doom-modeline-buffer-state-icon t)
   (doom-modeline-buffer-modification-icon t)
   (doom-modeline-minor-modes nil)
   (doom-modeline-enable-word-count t)
   (doom-modeline-buffer-file-name-style 'relative-from-project)
   (doom-modeline-project-name t))
-
-;; Brainrot
-;; (use-package brainrot
-;;   :straight (brainrot :type git :host github :repo "gloceansh/brainrot.el"
-;;                       :files ("*.el" "boom.ogg" "images" "phonks"))
-;;   :custom
-;;   (brainrot-phonk-duration 2.5)
-;;   (brainrot-min-error-duration 0.5)
-;;   (brainrot-boom-volume 50)
-;;   (brainrot-phonk-volume 50)
-;;   :config
-;;   (brainrot-mode 1))
 
 ;; -----------------------------------------------------------------------------
 ;; COMPLETION AND SEARCHING
@@ -429,13 +415,7 @@
   :init
   (global-hl-todo-mode 1)
   :config
-  (setq hl-todo-highlight-punctuation ":"
-        hl-todo-keyword-faces
-        '(("TODO"   . "#eb6f92")
-          ("FIXME"  . "#f6c177")
-          ("DEBUG"  . "#31748f")
-          ("GOTCHA" . "#c4a7e7")
-          ("NOTE"   . "#9ccfd8"))))
+  (setq hl-todo-highlight-punctuation ":"))
 
 ;; Treemacs file explorer
 (use-package treemacs
@@ -892,10 +872,6 @@
                            (hl-line-mode -1)
                            (setq-local line-spacing 0.18))) ; increase line height
 
-;; Super secret project
-;; (add-to-list 'load-path "/Users/glocean/Projects/org-typst-preview")
-;; (require 'org-typst-preview)
-
 ;; -----------------------------------------------------------------------------
 ;; KEYBINDINGS
 ;; -----------------------------------------------------------------------------
@@ -1036,250 +1012,3 @@
   "di"  '(dap-step-in :which-key "Step In")
   "do"  '(dap-step-out :which-key "Step Out")
   "dK"  '(dap-ui-repl :which-key "REPL"))
-
-;; -----------------------------------------------------------------------------
-;; THEME SWITCHING AND FACE CUSTOMIZATION
-;; -----------------------------------------------------------------------------
-
-;; Safely set a face — skips faces that haven't been defined yet (package not loaded)
-(defun my/safe-set-face (face _frame &rest args)
-  (when (facep face)
-    (apply #'set-face-attribute face nil args)))
-
-(defun my/apply-dark-faces ()
-  (my/safe-set-face 'default nil
-                    :background "#191724" :foreground "#e0def4"
-                    :height 140 :family "JetBrainsMono Nerd Font")
-  (my/safe-set-face 'breakpoint-disabled nil :foreground "#eb6f92")
-  (my/safe-set-face 'button nil :foreground "#c4a7e7")
-  (my/safe-set-face 'comint-highlight-prompt nil :background "#191724" :foreground "#c4a7e7")
-  (my/safe-set-face 'copilot-overlay-face nil :background "#26233a")
-  (my/safe-set-face 'corfu-bar nil :background "#c4a7e7")
-  (my/safe-set-face 'corfu-border nil :background "#524f67")
-  (my/safe-set-face 'cursor nil :background "#e0def4" :foreground "#191724")
-  (my/safe-set-face 'dap-ui-breakpoint-verified-fringe nil :foreground "#31748f" :weight 'bold)
-  (my/safe-set-face 'dashboard-banner-logo-title nil :weight 'thin :height 320)
-  (my/safe-set-face 'dashboard-heading nil :weight 'thin :height 170)
-  (my/safe-set-face 'nerd-icons-blue nil :foreground "#9ccfd8")
-  (my/safe-set-face 'nerd-icons-blue-alt nil :foreground "#9ccfd8")
-  (my/safe-set-face 'nerd-icons-cyan nil :foreground "#9ccfd8")
-  (my/safe-set-face 'nerd-icons-cyan-alt nil :foreground "#9ccfd8")
-  (my/safe-set-face 'nerd-icons-green nil :foreground "#31748f")
-  (my/safe-set-face 'nerd-icons-green-alt nil :foreground "#9ccfd8")
-  (my/safe-set-face 'nerd-icons-yellow nil :foreground "#f6c177")
-  (my/safe-set-face 'nerd-icons-orange nil :foreground "#f6c177")
-  (my/safe-set-face 'nerd-icons-orange-alt nil :foreground "#ebbcba")
-  (my/safe-set-face 'nerd-icons-red nil :foreground "#eb6f92")
-  (my/safe-set-face 'nerd-icons-red-alt nil :foreground "#eb6f92")
-  (my/safe-set-face 'nerd-icons-pink nil :foreground "#eb6f92")
-  (my/safe-set-face 'nerd-icons-purple nil :foreground "#c4a7e7")
-  (my/safe-set-face 'nerd-icons-purple-alt nil :foreground "#c4a7e7")
-  (my/safe-set-face 'nerd-icons-maroon nil :foreground "#eb6f92")
-  (my/safe-set-face 'nerd-icons-silver nil :foreground "#908caa")
-  (my/safe-set-face 'nerd-icons-dsilver nil :foreground "#6e6a86")
-  (setq dashboard-startup-banner
-        (expand-file-name "assets/xemacs_color_pine.svg" user-emacs-directory))
-  (when (get-buffer "*dashboard*") (dashboard-refresh-buffer))
-  (my/safe-set-face 'diff-added nil :extend t :background "#191724" :foreground "#9ccfd8")
-  (my/safe-set-face 'diff-hl-change nil :background "#191724" :foreground "#ebbcba")
-  (my/safe-set-face 'diff-hl-delete nil :background "#191724" :foreground "#eb6f92")
-  (my/safe-set-face 'diff-hl-dired-ignored nil :background "#191724" :foreground "#6e6a86")
-  (my/safe-set-face 'diff-hl-dired-unknown nil :background "#191724" :foreground "#6e6a86")
-  (my/safe-set-face 'diff-hl-insert nil :foreground "#9ccfd8")
-  (my/safe-set-face 'dired-ignored nil :background "#191724" :foreground "#6e6a86")
-  (my/safe-set-face 'doom-modeline-bar nil :background "#c4a7e7")
-  (my/safe-set-face 'doom-modeline-debug-visual nil :foreground "#eb6f92")
-  (my/safe-set-face 'doom-modeline-highlight nil :foreground "#191724")
-  (my/safe-set-face 'erc-direct-msg-face nil :foreground "#9ccfd8")
-  (my/safe-set-face 'erc-input-face nil :foreground "#c4a7e7")
-  (my/safe-set-face 'erc-my-nick-face nil :foreground "#c4a7e7" :weight 'bold)
-  (my/safe-set-face 'erc-notice-face nil :foreground "#6e6a86" :weight 'semi-bold)
-  (my/safe-set-face 'erc-prompt-face nil :foreground "#c4a7e7" :weight 'bold)
-  (my/safe-set-face 'erc-timestamp-face nil :foreground "#f6c177" :weight 'bold)
-  (my/safe-set-face 'evil-goggles--pulse-face nil :background "#eb6f92" :foreground "#191724")
-  (my/safe-set-face 'evil-goggles-change-face nil :background "#f6c177" :foreground "#191724")
-  (my/safe-set-face 'evil-goggles-delete-face nil :background "#eb6f92" :foreground "#191724")
-  (my/safe-set-face 'evil-goggles-nerd-commenter-face nil :background "#ebbcba" :foreground "#191724")
-  (my/safe-set-face 'evil-goggles-paste-face nil :background "#9ccfd8" :foreground "#191724")
-  (my/safe-set-face 'evil-goggles-yank-face nil :background "#c4a7e7" :foreground "#191724")
-  (my/safe-set-face 'font-lock-comment-face nil :foreground "#908caa")
-  (my/safe-set-face 'gptel-context-deletion-face nil :extend t :background "#eb6f92")
-  (my/safe-set-face 'gptel-context-highlight-face nil :extend t :background "#26233a")
-  (my/safe-set-face 'gptel-response-highlight nil :background "#1f1d2e" :foreground "#e0def4")
-  (my/safe-set-face 'gptel-rewrite-highlight-face nil :background "#403d52" :foreground "#9ccfd8")
-  (my/safe-set-face 'highlight nil :background "#403d52" :foreground "#e0def4")
-  (my/safe-set-face 'highlight-indent-guides-character-face nil :background "#191724" :foreground "#403d52")
-  (my/safe-set-face 'highlight-indent-guides-top-character-face nil :background "#191724" :foreground "#908caa")
-  (my/safe-set-face 'line-number-current-line nil :background "#191724" :foreground "#c4a7e7" :weight 'bold)
-  (my/safe-set-face 'mode-line nil :background "#1f1d2e" :foreground "#6e6a86")
-  (my/safe-set-face 'mode-line-active nil :background "#1f1d2e" :foreground "#6e6a86")
-  (my/safe-set-face 'mode-line-buffer-id nil :foreground "#c4a7e7" :weight 'bold)
-  (my/safe-set-face 'mode-line-highlight nil :background "#c4a7e7" :foreground "#1f1d2e")
-  (my/safe-set-face 'mouse-drag-and-drop-region nil :background "#403d52" :foreground "#e0def4")
-  (my/safe-set-face 'org-block nil :extend t :foreground "#e0def4")
-  (my/safe-set-face 'org-level-1 nil :extend nil :foreground "#c4a7e7")
-  (my/safe-set-face 'org-level-2 nil :extend nil :foreground "#ebbcba")
-  (my/safe-set-face 'org-level-3 nil :extend nil :foreground "#9ccfd8")
-  (my/safe-set-face 'org-level-4 nil :extend nil :foreground "#31748f")
-  (my/safe-set-face 'org-level-6 nil :extend nil :foreground "#f6c177")
-  (my/safe-set-face 'org-level-7 nil :extend nil :foreground "#908caa")
-  (my/safe-set-face 'org-level-8 nil :extend nil :foreground "#524f67")
-  (my/safe-set-face 'region nil :extend t :background "#403d52" :foreground "#e0def4")
-  (my/safe-set-face 'show-paren-match nil :background "#26233a" :foreground "#eb6f92" :weight 'bold)
-  (my/safe-set-face 'sp-pair-overlay-face nil :background "#26233a")
-  (my/safe-set-face 'term-color-black nil :background "#25233a" :foreground "#25233a")
-  (my/safe-set-face 'treemacs-file-face nil :foreground "#908caa")
-  (my/safe-set-face 'treemacs-fringe-indicator-face nil :foreground "#c4a7e7")
-  (my/safe-set-face 'treemacs-nerd-icons-file-face nil :foreground "#6e6a86")
-  (my/safe-set-face 'treemacs-nerd-icons-root-face nil :foreground "#c4a7e7")
-  (my/safe-set-face 'treemacs-root-face nil :foreground "#c4a7e7" :underline t :weight 'bold :height 1.2)
-  (my/safe-set-face 'vterm-color-black nil :background "#26233a" :foreground "#26233a")
-  (my/safe-set-face 'vterm-color-blue nil :background "#9ccfd8" :foreground "#9ccfd8")
-  (my/safe-set-face 'vterm-color-bright-black nil :background "#6e6a86" :foreground "#6e6a86")
-  (my/safe-set-face 'vterm-color-bright-blue nil :background "#9ccfd8" :foreground "#9ccfd8")
-  (my/safe-set-face 'vterm-color-bright-cyan nil :background "#ebbcba" :foreground "#ebbcba")
-  (my/safe-set-face 'vterm-color-bright-green nil :background "#31748f" :foreground "#31748f")
-  (my/safe-set-face 'vterm-color-bright-magenta nil :background "#c4a7e7" :foreground "#c4a7e7")
-  (my/safe-set-face 'vterm-color-bright-red nil :background "#eb6f92" :foreground "#eb6f92")
-  (my/safe-set-face 'vterm-color-bright-white nil :background "#e0def4" :foreground "#e0def4")
-  (my/safe-set-face 'vterm-color-bright-yellow nil :background "#f6c177" :foreground "#f6c177")
-  (my/safe-set-face 'vterm-color-cyan nil :background "#ebbcba" :foreground "#ebbcba")
-  (my/safe-set-face 'vterm-color-green nil :background "#31748f" :foreground "#31748f")
-  (my/safe-set-face 'vterm-color-magenta nil :background "#c4a7e7" :foreground "#c4a7e7")
-  (my/safe-set-face 'vterm-color-red nil :background "#eb6f92" :foreground "#eb6f92")
-  (my/safe-set-face 'vterm-color-white nil :background "#e0def4" :foreground "#e0def4")
-  (my/safe-set-face 'vterm-color-yellow nil :background "#f6c177" :foreground "#f6c177")
-  (my/safe-set-face 'widget-button-pressed nil :foreground "#6e6a86")
-  (setq hl-todo-keyword-faces
-        '(("TODO"   . "#eb6f92")
-          ("FIXME"  . "#f6c177")
-          ("DEBUG"  . "#31748f")
-          ("GOTCHA" . "#c4a7e7")
-          ("NOTE"   . "#9ccfd8")))
-  (setq org-modern-todo-faces
-        '(("WAIT" :background "#6e6a86" :foreground "#e0def4")
-          ("PROJ" :background "#c4a7e7" :foreground "#191724"))))
-
-(defun my/apply-dawn-faces ()
-  (my/safe-set-face 'default nil
-                    :background "#faf4ed" :foreground "#575279"
-                    :height 140 :family "JetBrainsMono Nerd Font")
-  (my/safe-set-face 'breakpoint-disabled nil :foreground "#b4637a")
-  (my/safe-set-face 'button nil :foreground "#907aa9")
-  (my/safe-set-face 'comint-highlight-prompt nil :background "#faf4ed" :foreground "#907aa9")
-  (my/safe-set-face 'copilot-overlay-face nil :background "#f2e9e1")
-  (my/safe-set-face 'corfu-bar nil :background "#907aa9")
-  (my/safe-set-face 'corfu-border nil :background "#cecacd")
-  (my/safe-set-face 'cursor nil :background "#575279" :foreground "#faf4ed")
-  (my/safe-set-face 'dap-ui-breakpoint-verified-fringe nil :foreground "#286983" :weight 'bold)
-  (my/safe-set-face 'dashboard-banner-logo-title nil :weight 'thin :height 320)
-  (my/safe-set-face 'dashboard-footer-face nil :foreground "#797593")
-  (my/safe-set-face 'dashboard-heading nil :weight 'thin :height 170)
-  (my/safe-set-face 'nerd-icons-blue nil :foreground "#286983")
-  (my/safe-set-face 'nerd-icons-blue-alt nil :foreground "#56949f")
-  (my/safe-set-face 'nerd-icons-cyan nil :foreground "#56949f")
-  (my/safe-set-face 'nerd-icons-cyan-alt nil :foreground "#56949f")
-  (my/safe-set-face 'nerd-icons-green nil :foreground "#286983")
-  (my/safe-set-face 'nerd-icons-green-alt nil :foreground "#56949f")
-  (my/safe-set-face 'nerd-icons-yellow nil :foreground "#ea9d34")
-  (my/safe-set-face 'nerd-icons-orange nil :foreground "#ea9d34")
-  (my/safe-set-face 'nerd-icons-orange-alt nil :foreground "#d7827e")
-  (my/safe-set-face 'nerd-icons-red nil :foreground "#b4637a")
-  (my/safe-set-face 'nerd-icons-red-alt nil :foreground "#b4637a")
-  (my/safe-set-face 'nerd-icons-pink nil :foreground "#b4637a")
-  (my/safe-set-face 'nerd-icons-purple nil :foreground "#907aa9")
-  (my/safe-set-face 'nerd-icons-purple-alt nil :foreground "#907aa9")
-  (my/safe-set-face 'nerd-icons-maroon nil :foreground "#b4637a")
-  (my/safe-set-face 'nerd-icons-silver nil :foreground "#9893a5")
-  (my/safe-set-face 'nerd-icons-dsilver nil :foreground "#797593")
-  (setq dashboard-startup-banner
-        (expand-file-name "assets/xemacs_color_pine_dawn.svg" user-emacs-directory))
-  (when (get-buffer "*dashboard*") (dashboard-refresh-buffer))
-  (my/safe-set-face 'diff-added nil :extend t :background "#faf4ed" :foreground "#56949f")
-  (my/safe-set-face 'diff-hl-change nil :background "#faf4ed" :foreground "#d7827e")
-  (my/safe-set-face 'diff-hl-delete nil :background "#faf4ed" :foreground "#b4637a")
-  (my/safe-set-face 'diff-hl-dired-ignored nil :background "#faf4ed" :foreground "#9893a5")
-  (my/safe-set-face 'diff-hl-dired-unknown nil :background "#faf4ed" :foreground "#9893a5")
-  (my/safe-set-face 'diff-hl-insert nil :foreground "#56949f")
-  (my/safe-set-face 'dired-ignored nil :background "#faf4ed" :foreground "#9893a5")
-  (my/safe-set-face 'doom-modeline-bar nil :background "#907aa9")
-  (my/safe-set-face 'doom-modeline-debug-visual nil :foreground "#b4637a")
-  (my/safe-set-face 'doom-modeline-highlight nil :foreground "#faf4ed")
-  (my/safe-set-face 'erc-direct-msg-face nil :foreground "#56949f")
-  (my/safe-set-face 'erc-input-face nil :foreground "#907aa9")
-  (my/safe-set-face 'erc-my-nick-face nil :foreground "#907aa9" :weight 'bold)
-  (my/safe-set-face 'erc-notice-face nil :foreground "#9893a5" :weight 'semi-bold)
-  (my/safe-set-face 'erc-prompt-face nil :foreground "#907aa9" :weight 'bold)
-  (my/safe-set-face 'erc-timestamp-face nil :foreground "#ea9d34" :weight 'bold)
-  (my/safe-set-face 'evil-goggles--pulse-face nil :background "#b4637a" :foreground "#faf4ed")
-  (my/safe-set-face 'evil-goggles-change-face nil :background "#ea9d34" :foreground "#faf4ed")
-  (my/safe-set-face 'evil-goggles-delete-face nil :background "#b4637a" :foreground "#faf4ed")
-  (my/safe-set-face 'evil-goggles-nerd-commenter-face nil :background "#d7827e" :foreground "#faf4ed")
-  (my/safe-set-face 'evil-goggles-paste-face nil :background "#56949f" :foreground "#faf4ed")
-  (my/safe-set-face 'evil-goggles-yank-face nil :background "#907aa9" :foreground "#faf4ed")
-  (my/safe-set-face 'font-lock-comment-face nil :foreground "#797593")
-  (my/safe-set-face 'gptel-context-deletion-face nil :extend t :background "#b4637a")
-  (my/safe-set-face 'gptel-context-highlight-face nil :extend t :background "#f2e9e1")
-  (my/safe-set-face 'gptel-response-highlight nil :background "#fffaf3" :foreground "#575279")
-  (my/safe-set-face 'gptel-rewrite-highlight-face nil :background "#dfdad9" :foreground "#56949f")
-  (my/safe-set-face 'highlight nil :background "#dfdad9" :foreground "#575279")
-  (my/safe-set-face 'highlight-indent-guides-character-face nil :background "#faf4ed" :foreground "#dfdad9")
-  (my/safe-set-face 'highlight-indent-guides-top-character-face nil :background "#faf4ed" :foreground "#797593")
-  (my/safe-set-face 'line-number-current-line nil :background "#faf4ed" :foreground "#907aa9" :weight 'bold)
-  (my/safe-set-face 'mode-line nil :background "#fffaf3" :foreground "#9893a5")
-  (my/safe-set-face 'mode-line-active nil :background "#fffaf3" :foreground "#9893a5")
-  (my/safe-set-face 'mode-line-buffer-id nil :foreground "#907aa9" :weight 'bold)
-  (my/safe-set-face 'mode-line-highlight nil :background "#907aa9" :foreground "#fffaf3")
-  (my/safe-set-face 'mouse-drag-and-drop-region nil :background "#dfdad9" :foreground "#575279")
-  (my/safe-set-face 'org-block nil :extend t :foreground "#575279")
-  (my/safe-set-face 'org-level-1 nil :extend nil :foreground "#907aa9")
-  (my/safe-set-face 'org-level-2 nil :extend nil :foreground "#d7827e")
-  (my/safe-set-face 'org-level-3 nil :extend nil :foreground "#56949f")
-  (my/safe-set-face 'org-level-4 nil :extend nil :foreground "#286983")
-  (my/safe-set-face 'org-level-6 nil :extend nil :foreground "#ea9d34")
-  (my/safe-set-face 'org-level-7 nil :extend nil :foreground "#797593")
-  (my/safe-set-face 'org-level-8 nil :extend nil :foreground "#cecacd")
-  (my/safe-set-face 'region nil :extend t :background "#dfdad9" :foreground "#575279")
-  (my/safe-set-face 'show-paren-match nil :background "#f2e9e1" :foreground "#b4637a" :weight 'bold)
-  (my/safe-set-face 'sp-pair-overlay-face nil :background "#f2e9e1")
-  (my/safe-set-face 'term-color-black nil :background "#f2e9e1" :foreground "#f2e9e1")
-  (my/safe-set-face 'treemacs-file-face nil :foreground "#797593")
-  (my/safe-set-face 'treemacs-fringe-indicator-face nil :foreground "#907aa9")
-  (my/safe-set-face 'treemacs-nerd-icons-file-face nil :foreground "#9893a5")
-  (my/safe-set-face 'treemacs-nerd-icons-root-face nil :foreground "#907aa9")
-  (my/safe-set-face 'treemacs-root-face nil :foreground "#907aa9" :underline t :weight 'bold :height 1.2)
-  (my/safe-set-face 'vterm-color-black nil :background "#f2e9e1" :foreground "#f2e9e1")
-  (my/safe-set-face 'vterm-color-blue nil :background "#56949f" :foreground "#56949f")
-  (my/safe-set-face 'vterm-color-bright-black nil :background "#9893a5" :foreground "#9893a5")
-  (my/safe-set-face 'vterm-color-bright-blue nil :background "#56949f" :foreground "#56949f")
-  (my/safe-set-face 'vterm-color-bright-cyan nil :background "#d7827e" :foreground "#d7827e")
-  (my/safe-set-face 'vterm-color-bright-green nil :background "#286983" :foreground "#286983")
-  (my/safe-set-face 'vterm-color-bright-magenta nil :background "#907aa9" :foreground "#907aa9")
-  (my/safe-set-face 'vterm-color-bright-red nil :background "#b4637a" :foreground "#b4637a")
-  (my/safe-set-face 'vterm-color-bright-white nil :background "#575279" :foreground "#575279")
-  (my/safe-set-face 'vterm-color-bright-yellow nil :background "#ea9d34" :foreground "#ea9d34")
-  (my/safe-set-face 'vterm-color-cyan nil :background "#d7827e" :foreground "#d7827e")
-  (my/safe-set-face 'vterm-color-green nil :background "#286983" :foreground "#286983")
-  (my/safe-set-face 'vterm-color-magenta nil :background "#907aa9" :foreground "#907aa9")
-  (my/safe-set-face 'vterm-color-red nil :background "#b4637a" :foreground "#b4637a")
-  (my/safe-set-face 'vterm-color-white nil :background "#575279" :foreground "#575279")
-  (my/safe-set-face 'vterm-color-yellow nil :background "#ea9d34" :foreground "#ea9d34")
-  (my/safe-set-face 'widget-button-pressed nil :foreground "#9893a5")
-  (setq hl-todo-keyword-faces
-        '(("TODO"   . "#b4637a")
-          ("FIXME"  . "#ea9d34")
-          ("DEBUG"  . "#286983")
-          ("GOTCHA" . "#907aa9")
-          ("NOTE"   . "#56949f")))
-  (setq org-modern-todo-faces
-        '(("WAIT" :background "#9893a5" :foreground "#faf4ed")
-          ("PROJ" :background "#907aa9" :foreground "#faf4ed"))))
-
-(defun my/apply-theme (appearance)
-  (mapc #'disable-theme custom-enabled-themes)
-  (pcase appearance
-    ('dark  (load-theme 'rose-pine-color t) (my/apply-dark-faces))
-    ('light (load-theme 'rose-pine-dawn  t) (my/apply-dawn-faces))))
-
-(add-hook 'ns-system-appearance-change-functions #'my/apply-theme)
-(my/apply-theme (or (bound-and-true-p ns-system-appearance) 'dark))

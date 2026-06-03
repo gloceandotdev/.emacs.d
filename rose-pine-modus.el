@@ -1,0 +1,228 @@
+;;; rose-pine-modus.el --- Rose Pine colors via Modus palette overrides because existing themes suck -*- lexical-binding: t; -*-
+
+(defun rose-pine-modus--apply (appearance)
+  "Load the Rose Pine variant matching APPEARANCE (`light' or `dark')."
+  (mapc #'disable-theme custom-enabled-themes)
+  (pcase appearance
+    ('light (load-theme 'modus-operandi :no-confirm))
+    (_      (load-theme 'modus-vivendi  :no-confirm)))
+  (let* ((dark          (eq (car custom-enabled-themes) 'modus-vivendi))
+         (bg-main       (if dark "#191724" "#faf4ed"))
+         (bg-dim        (if dark "#1f1d2e" "#f2e9e1"))
+         (bg-active     (if dark "#26233a" "#dfdad9"))
+         (overlay       (if dark "#403d52" "#cecacd"))
+         (highlight-low (if dark "#21202e" "#f4ede8"))
+         (fg-main       (if dark "#e0def4" "#575279"))
+         (fg-subtle     (if dark "#908caa" "#797593"))
+         (iris          (if dark "#c4a7e7" "#907aa9"))
+         (rose          (if dark "#ebbcba" "#d7827e"))
+         (love          (if dark "#eb6f92" "#b4637a"))
+         (foam          (if dark "#9ccfd8" "#56949f"))
+         (gold          (if dark "#f6c177" "#ea9d34"))
+         (pine          (if dark "#31748f" "#286983")))
+    (set-face-attribute 'default              nil :height 140 :family "JetBrainsMono Nerd Font")
+    (set-face-attribute 'fixed-pitch          nil :family "JetBrainsMono Nerd Font")
+    (set-face-attribute 'fixed-pitch-serif    nil :family "JetBrainsMono Nerd Font")
+    (set-face-attribute 'line-number          nil :family "JetBrainsMono Nerd Font")
+    (set-face-attribute 'line-number-current-line nil
+                        :family "JetBrainsMono Nerd Font" :foreground iris :weight 'bold)
+    (set-face-attribute 'fringe  nil :background bg-main)
+    (set-face-attribute 'hl-line nil :background highlight-low)
+    (when (facep 'dashboard-banner-logo-title)
+      (set-face-attribute 'dashboard-banner-logo-title nil :weight 'thin :height 320))
+    (when (facep 'dashboard-heading)
+      (set-face-attribute 'dashboard-heading nil :weight 'thin :height 170))
+    (setq dashboard-startup-banner
+          (expand-file-name (if dark "assets/xemacs_color_pine.svg"
+                              "assets/xemacs_color_pine_dawn.svg")
+                            user-emacs-directory))
+    (when (get-buffer "*dashboard*") (dashboard-refresh-buffer))
+    (when (facep 'doom-modeline-bar)
+      (set-face-attribute 'doom-modeline-bar nil :background iris))
+    (when (facep 'doom-modeline-evil-normal-state)
+      (set-face-attribute 'doom-modeline-evil-normal-state nil :foreground iris :weight 'bold))
+    ;; Corfu completion popup
+    (when (facep 'corfu-default)
+      (set-face-attribute 'corfu-default     nil :background bg-dim   :foreground fg-main)
+      (set-face-attribute 'corfu-current     nil :background bg-active :foreground fg-main)
+      (set-face-attribute 'corfu-bar         nil :background iris)
+      (set-face-attribute 'corfu-border      nil :background overlay)
+      (set-face-attribute 'corfu-annotations nil :foreground fg-subtle))
+    (when (facep 'corfu-popupinfo)
+      (set-face-attribute 'corfu-popupinfo nil :background bg-dim :foreground fg-main))
+    (when (facep 'diff-hl-change)
+      (set-face-attribute 'diff-hl-change nil :background bg-main :foreground rose)
+      (set-face-attribute 'diff-hl-delete nil :background bg-main :foreground love)
+      (set-face-attribute 'diff-hl-insert nil :background bg-main :foreground foam))
+    (setq hl-todo-keyword-faces
+          `(("TODO"   . ,love)
+            ("FIXME"  . ,gold)
+            ("DEBUG"  . ,pine)
+            ("GOTCHA" . ,iris)
+            ("NOTE"   . ,foam)))))
+
+(use-package modus-themes
+  :straight t
+  :init
+
+  (setq modus-themes-common-palette-overrides
+        '(;; syntax
+          (comment      fg-dim)
+          (string       yellow)
+          (keyword      blue)
+          (builtin      magenta)
+          (constant     yellow)
+          (fnname       red-faint)
+          (type         cyan)
+          (variable     fg-main)
+          (preprocessor magenta)
+          (docstring    fg-dim)
+          (docmarkup    yellow)
+          (rx-construct green-cooler)
+          (rx-backslash magenta)
+
+          ;; headings
+          (fg-heading-0 magenta)
+          (fg-heading-1 magenta)
+          (fg-heading-2 cyan)
+          (fg-heading-3 red-faint)
+          (fg-heading-4 yellow)
+          (fg-heading-5 blue)
+          (fg-heading-6 cyan)
+          (fg-heading-7 magenta)
+          (fg-heading-8 cyan)
+
+          ;; org / prose
+          (prose-code     cyan)
+          (prose-verbatim yellow)
+          (prose-macro    magenta)
+          (prose-tag      fg-dim)
+          (prose-done     green-cooler)
+          (prose-todo     red-faint)
+          (prose-table    fg-dim)
+
+          ;; ui
+          (accent-0 blue) (accent-1 magenta) (accent-2 cyan) (accent-3 yellow)
+          (fg-completion-match-0 blue)
+          (fg-completion-match-1 magenta)
+          (fg-completion-match-2 cyan)
+          (fg-completion-match-3 yellow)
+          (fg-link         magenta)
+          (fg-link-visited cyan)
+          (name       blue)
+          (identifier magenta)
+          (keybind    blue)
+          (fg-prompt  blue)
+
+          ;; diagnostics
+          (err     red)
+          (warning yellow)
+          (info    cyan)
+          (success green-cooler)
+          (note    blue)))
+
+  ;; Dark variant - Rose Pine main
+  (setq modus-vivendi-palette-overrides
+        '((bg-main      "#191724") (bg-dim       "#1f1d2e")
+          (bg-active    "#26233a") (bg-inactive  "#1f1d2e")
+          (fg-main      "#e0def4") (fg-dim       "#908caa") (fg-alt "#9ccfd8")
+          (border       "#403d52") (cursor       "#e0def4")
+          (bg-region    "#403d52") (fg-region    "#e0def4")
+          (bg-hover     "#403d52") (bg-hover-secondary "#26233a")
+          (bg-completion "#26233a") (bg-paren-match "#403d52")
+          (red "#eb6f92") (red-warmer "#eb6f92") (red-cooler "#eb6f92")
+          (red-faint "#ebbcba") (red-intense "#eb6f92")
+          (green "#9ccfd8") (green-warmer "#9ccfd8") (green-cooler "#31748f")
+          (green-faint "#31748f") (green-intense "#9ccfd8")
+          (yellow "#f6c177") (yellow-warmer "#f6c177") (yellow-cooler "#f6c177")
+          (yellow-faint "#f6c177") (yellow-intense "#f6c177")
+          (blue "#31748f") (blue-warmer "#31748f") (blue-cooler "#9ccfd8")
+          (blue-faint "#31748f") (blue-intense "#9ccfd8")
+          (magenta "#c4a7e7") (magenta-warmer "#c4a7e7") (magenta-cooler "#c4a7e7")
+          (magenta-faint "#c4a7e7") (magenta-intense "#c4a7e7")
+          (cyan "#9ccfd8") (cyan-warmer "#9ccfd8") (cyan-cooler "#9ccfd8")
+          (cyan-faint "#9ccfd8") (cyan-intense "#9ccfd8")
+          (bg-mode-line-active "#26233a") (fg-mode-line-active "#e0def4")
+          (border-mode-line-active "#26233a")
+          (bg-mode-line-inactive "#1f1d2e") (fg-mode-line-inactive "#6e6a86")
+          (border-mode-line-inactive "#1f1d2e")
+          (bg-tab-bar "#191724") (bg-tab-current "#26233a") (bg-tab-other "#1f1d2e")
+          (fg-line-number-inactive "#6e6a86") (fg-line-number-active "#e0def4")
+          (bg-line-number-inactive "#191724") (bg-line-number-active "#1f1d2e")
+          (bg-added "#14342b") (bg-added-faint "#102a23")
+          (bg-added-refine "#1d4539") (fg-added "#9ccfd8")
+          (bg-changed "#3a3320") (bg-changed-faint "#2c2718")
+          (bg-changed-refine "#4d4326") (fg-changed "#f6c177")
+          (bg-removed "#3a2030") (bg-removed-faint "#2c1825")
+          (bg-removed-refine "#4d2940") (fg-removed "#eb6f92")))
+
+  ;; Light variant - Rose Pine Dawn
+  (setq modus-operandi-palette-overrides
+        '((bg-main      "#faf4ed") (bg-dim       "#f2e9e1")
+          (bg-active    "#dfdad9") (bg-inactive  "#f2e9e1")
+          (fg-main      "#575279") (fg-dim       "#797593") (fg-alt "#286983")
+          (border       "#cecacd") (cursor       "#575279")
+          (bg-region    "#dfdad9") (fg-region    "#575279")
+          (bg-hover     "#dfdad9") (bg-hover-secondary "#f2e9e1")
+          (bg-completion "#f2e9e1") (bg-paren-match "#dfdad9")
+          (red "#b4637a") (red-warmer "#b4637a") (red-cooler "#b4637a")
+          (red-faint "#d7827e") (red-intense "#b4637a")
+          (green "#56949f") (green-warmer "#56949f") (green-cooler "#286983")
+          (green-faint "#286983") (green-intense "#56949f")
+          (yellow "#ea9d34") (yellow-warmer "#ea9d34") (yellow-cooler "#ea9d34")
+          (yellow-faint "#ea9d34") (yellow-intense "#ea9d34")
+          (blue "#286983") (blue-warmer "#286983") (blue-cooler "#56949f")
+          (blue-faint "#286983") (blue-intense "#56949f")
+          (magenta "#907aa9") (magenta-warmer "#907aa9") (magenta-cooler "#907aa9")
+          (magenta-faint "#907aa9") (magenta-intense "#907aa9")
+          (cyan "#56949f") (cyan-warmer "#56949f") (cyan-cooler "#56949f")
+          (cyan-faint "#56949f") (cyan-intense "#56949f")
+          (bg-mode-line-active "#f2e9e1") (fg-mode-line-active "#575279")
+          (border-mode-line-active "#f2e9e1")
+          (bg-mode-line-inactive "#faf4ed") (fg-mode-line-inactive "#9893a5")
+          (border-mode-line-inactive "#faf4ed")
+          (bg-tab-bar "#faf4ed") (bg-tab-current "#dfdad9") (bg-tab-other "#f2e9e1")
+          (fg-line-number-inactive "#9893a5") (fg-line-number-active "#575279")
+          (bg-line-number-inactive "#faf4ed") (bg-line-number-active "#f2e9e1")
+          (bg-added "#d7e9e6") (bg-added-faint "#e3f0ee")
+          (bg-added-refine "#c3ddd9") (fg-added "#286983")
+          (bg-changed "#f0e2d4") (bg-changed-faint "#f5ece2")
+          (bg-changed-refine "#e8d3bd") (fg-changed "#ea9d34")
+          (bg-removed "#f2d9de") (bg-removed-faint "#f7e6ea")
+          (bg-removed-refine "#ecc4cc") (fg-removed "#b4637a")))
+
+  (setq modus-themes-custom-auto-reload t
+        modus-themes-to-toggle '(modus-vivendi modus-operandi)
+        modus-themes-bold-constructs t
+        modus-themes-italic-constructs t
+        modus-themes-mixed-fonts t
+        modus-themes-org-blocks 'tinted-background
+        modus-themes-prompts '(bold)
+        modus-themes-completions '((matches . (extrabold))
+                                   (selection . (semibold)))
+        modus-themes-headings '((1 . (1.3))
+                                (2 . (1.2))
+                                (3 . (1.1))
+                                (t . (1.0))))
+
+  :config
+  (cond
+   ((boundp 'ns-system-appearance)
+    (add-hook 'ns-system-appearance-change-functions #'rose-pine-modus--apply)
+    (rose-pine-modus--apply ns-system-appearance))
+   ((boundp 'mac-effective-appearance-change-hook)
+    (let ((sync (lambda ()
+                  (rose-pine-modus--apply
+                   (if (equal (plist-get (mac-application-state) :appearance)
+                              "NSAppearanceNameDarkAqua")
+                       'dark 'light)))))
+      (add-hook 'mac-effective-appearance-change-hook sync)
+      (funcall sync)))
+   ((eq system-type 'darwin)
+    (rose-pine-modus--apply
+     (if (string-match-p
+          "Dark" (shell-command-to-string "defaults read -g AppleInterfaceStyle"))
+         'dark 'light)))
+   (t (rose-pine-modus--apply 'dark))))
+
+;;; rose-pine-modus.el ends here

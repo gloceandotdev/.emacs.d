@@ -3,5 +3,6 @@
 !.gitignore
 !init.el
 !early-init.el
+!rose-pine-modus.el
 !assets/
 !README.md
