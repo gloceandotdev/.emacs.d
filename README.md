@@ -1,6 +1,6 @@
 # 🪷 Glocean's .emacs.d
 
-A minimal, high performance emacs configuration with full LSP support and org mode
+A minimal Emacs configuration with full LSP and org-mode support.
 
 <img alt="Dashboard" src="assets/dashboard.png" />
 
