@@ -655,7 +655,7 @@
 
   (setq org-adapt-indentation nil)
   (setq org-directory "~/org")
-  (setq org-default-notes-file (expand-file-name "agenda/inbox.org" org-directory))
+  (setq org-default-notes-file (expand-file-name "agenda/events.org" org-directory))
   (setq org-capture-bookmark nil)
   (setq org-preview-latex-image-directory
         (expand-file-name "ltximg/" user-emacs-directory))
@@ -724,24 +724,14 @@
                  (window-parameters . ((no-delete-other-windows . t)))))
 
   (setq org-capture-templates
-        '(("i" "Inbox" entry
-           (file (lambda () (expand-file-name "agenda/inbox.org" org-directory)))
-           "* TODO %?\n%U\n"
-           :empty-lines 1)
-
-          ("s" "Schedule" entry
-           (file (lambda () (expand-file-name "agenda/schedule.org" org-directory)))
-           "* %^{Title}\n%^t\n%?"
-           :empty-lines 1)
-
-          ("e" "Event" entry
+        '(("e" "Event" entry
            (file (lambda () (expand-file-name "agenda/events.org" org-directory)))
-           "* %^{Event}\n%^t\n%?"
+           "* %^{Event}\n%?"
            :empty-lines 1)
 
-          ("h" "Homework" entry
-           (file (lambda () (expand-file-name "agenda/events.org" org-directory)))
-           "* TODO %^{Course} - %^{Assignment}\nDEADLINE: %^t\n:PROPERTIES:\n:TYPE: %^{Type|Homework|Quiz|Exam|Project}\n:END:\n\n%?"
+          ("u" "Uni" entry
+           (file (lambda () (expand-file-name "agenda/uni.org" org-directory)))
+           "* TODO %^{Course} - %^{Assignment}\nDEADLINE: %^t\n:PROPERTIES:\n:TYPE: %^{Type|Homework|Quiz|Exam|Project|Lab|Essay|Presentation}\n:END:\n\n%?"
            :empty-lines 1))))
 
 ;; Automatically continue lists with when pressing RET
@@ -826,18 +816,14 @@
 
   (setq org-roam-capture-templates
         '(("d" "default" plain "%?"
-           :target (file+head "${slug}.org"
+           :target (file+head "misc/${slug}.org"
                               "#+title: ${title}\n#+date: %U\n#+filetags:\n\n")
            :unnarrowed t)
           ("u" "uni" plain "%?"
            :target (file+head "uni/${slug}.org"
                               "#+title: ${title}\n#+date: %U\n#+filetags: :uni:\n\n")
            :unnarrowed t)
-          ("l" "lecture" plain
-           "* meta\n:PROPERTIES:\n:course:   %^{Course Code}\n:lecture:  %^{Lecture Number}\n:slides:   [[file:%^{Slides Path}][  Slides]]\n:END:\n\n* notes\n%?"
-           :target (file+head "uni/${slug}.org"
-                              "#+title: ${title}\n#+date: %U\n#+filetags: :uni:lecture:\n\n")
-           :unnarrowed t)
+
           ("h" "homelab" plain "%?"
            :target (file+head "homelab/${slug}.org"
                               "#+title: ${title}\n#+date: %U\n#+filetags: :homelab:\n\n")
@@ -971,17 +957,15 @@
   ;; Org-mode
   "o"   '(:ignore t :which-key "Org-mode")
   "oa"  '(org-agenda-list :which-key "Weekly Agenda")
+  "os"  '((lambda () (interactive) (find-file (expand-file-name "scratchpad.org" org-directory))) :which-key "Scratchpad")
   "oc"  '(org-capture :which-key "Capture Task")
-  "ol"  '(org-store-link :which-key "Store Link")
   "ot"  '(org-todo-list :which-key "Global TODOs")
-  "oi"  '((lambda () (interactive) (find-file (expand-file-name "agenda/inbox.org" org-directory))) :which-key "Inbox")
-  "os"  '((lambda () (interactive) (find-file (expand-file-name "agenda/schedule.org" org-directory))) :which-key "Schedule")
 
   ;; Org-roam bindings
   "or"  '(:ignore t :which-key "Roam")
   "orf" '(org-roam-node-find :which-key "Find/Create Note")
   "ori" '(org-roam-node-insert :which-key "Insert Link")
-  "orc" '(org-roam-capture :which-key "Capture Note")
+
   "ord" '(org-roam-dailies-goto-today :which-key "Today's Journal")
   "orD" '(org-roam-dailies-goto-date :which-key "Journal by Date")
   "org" '(org-roam-ui-open :which-key "Graph View")
