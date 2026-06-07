@@ -64,6 +64,7 @@
               indent-tabs-mode nil) ; Use spaces, not tabs
 
 (setq blink-cursor-blinks 0) ; Make the blinks not stop
+(blink-cursor-mode 1)
 (global-display-line-numbers-mode t) ; Enable line numbers globally
 (setq display-line-numbers-type 'relative) ; And make them relative
 (global-hl-line-mode t) ; Highlight the current line
