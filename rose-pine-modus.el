@@ -50,6 +50,10 @@
       (set-face-attribute 'corfu-annotations nil :foreground fg-subtle))
     (when (facep 'corfu-popupinfo)
       (set-face-attribute 'corfu-popupinfo nil :background bg-dim :foreground fg-main))
+    ;; Indent guides
+    (when (facep 'highlight-indent-guides-character-face)
+      (set-face-attribute 'highlight-indent-guides-character-face     nil :foreground overlay)
+      (set-face-attribute 'highlight-indent-guides-top-character-face nil :foreground fg-subtle))
     (when (facep 'diff-hl-change)
       (set-face-attribute 'diff-hl-change nil :background bg-main :foreground rose)
       (set-face-attribute 'diff-hl-delete nil :background bg-main :foreground love)

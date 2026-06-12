@@ -204,7 +204,13 @@
   (setq highlight-indent-guides-character ?│)
   (setq highlight-indent-guides-responsive 'top)
   (setq highlight-indent-guides-delay 0)
-  (setq highlight-indent-guides-auto-enabled nil))
+  (setq highlight-indent-guides-auto-enabled nil)
+  ;; Set colors at load time by reading the active theme (theme function handles switches)
+  (let ((dark (eq (car custom-enabled-themes) 'modus-vivendi)))
+    (set-face-attribute 'highlight-indent-guides-character-face nil
+                        :foreground (if dark "#403d52" "#cecacd"))
+    (set-face-attribute 'highlight-indent-guides-top-character-face nil
+                        :foreground (if dark "#908caa" "#797593"))))
 
 ;; Smooth scroll
 (use-package ultra-scroll
@@ -966,7 +972,6 @@
   "or"  '(:ignore t :which-key "Roam")
   "orf" '(org-roam-node-find :which-key "Find/Create Note")
   "ori" '(org-roam-node-insert :which-key "Insert Link")
-
   "ord" '(org-roam-dailies-goto-today :which-key "Today's Journal")
   "orD" '(org-roam-dailies-goto-date :which-key "Journal by Date")
   "org" '(org-roam-ui-open :which-key "Graph View")
