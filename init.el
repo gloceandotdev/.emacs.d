@@ -730,6 +730,24 @@
                  (preserve-size . (t . nil))
                  (window-parameters . ((no-delete-other-windows . t)))))
 
+  (defvar gl/blog-posts-dir "~/Projects/glocean.dev/posts/"
+    "Directory holding glocean.dev blog post sources.")
+
+  (defvar gl/blog--title nil
+    "Title of the glocean.dev blog post currently being captured.")
+
+  (defun gl/blog-slugify (title)
+    "Turn TITLE into a filename-safe slug."
+    (string-trim (replace-regexp-in-string "[^a-z0-9]+" "-" (downcase title)) "-+" "-+"))
+
+  (defun gl/blog-capture-target ()
+    "Prompt for a post title and visit a fresh posts/<slug>.org buffer."
+    (setq gl/blog--title (read-string "Post title: "))
+    (set-buffer (org-capture-target-buffer
+                 (expand-file-name (concat (gl/blog-slugify gl/blog--title) ".org")
+                                   (expand-file-name gl/blog-posts-dir))))
+    (goto-char (point-max)))
+
   (setq org-capture-templates
         '(("e" "Event" entry
            (file (lambda () (expand-file-name "agenda/events.org" org-directory)))
@@ -739,7 +757,12 @@
           ("u" "Uni" entry
            (file (lambda () (expand-file-name "agenda/uni.org" org-directory)))
            "* TODO %^{Course} - %^{Assignment}\nDEADLINE: %^t\n:PROPERTIES:\n:TYPE: %^{Type|Homework|Quiz|Exam|Project|Lab|Essay|Presentation}\n:END:\n\n%?"
-           :empty-lines 1))))
+           :empty-lines 1)
+
+          ("b" "Blog post (glocean.dev)" plain
+           (function gl/blog-capture-target)
+           "#+title: %(progn gl/blog--title)\n#+date: <%<%Y-%m-%d>>\n#+filetags: %^{Tags}\n#+excerpt: %^{Excerpt}\n\n%?"
+           :unnarrowed t :empty-lines 0))))
 
 ;; Automatically continue lists with when pressing RET
 (use-package org-autolist
@@ -834,10 +857,6 @@
           ("h" "homelab" plain "%?"
            :target (file+head "homelab/${slug}.org"
                               "#+title: ${title}\n#+date: %U\n#+filetags: :homelab:\n\n")
-           :unnarrowed t)
-          ("m" "music" plain "%?"
-           :target (file+head "music/${slug}.org"
-                              "#+title: ${title}\n#+date: %U\n#+filetags: :music:\n\n")
            :unnarrowed t)
           ("p" "personal" plain "%?"
            :target (file+head "personal/${slug}.org"
