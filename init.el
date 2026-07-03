@@ -514,10 +514,6 @@
 (use-package tree-sitter-langs
   :after tree-sitter)
 
-;; Hooks for specific languages
-(add-hook 'java-mode-hook #'tree-sitter-mode)
-(add-hook 'java-mode-hook #'tree-sitter-hl-mode)
-
 ;; Programming language snippets with yasnippet
 (use-package yasnippet
   :config
@@ -550,20 +546,7 @@
   :config
   (setq-default gptel-model 'gpt-5-mini)
   (setq-default gptel-backend
-                (gptel-make-gh-copilot "Copilot"))
-  (add-to-list 'gptel-directives
-               '(notes . "You are an Org-mode note-autocomplete assistant for Emacs. When given an org buffer context and the current heading, produce only the org-mode text that should be inserted at the cursor (no explanation or meta commentary). Follow these rules:
-
-- Match the user's existing voice, tone, sentence length, and structure by analyzing surrounding headings and previous notes in the buffer; mimic formatting choices (bullet style, checkbox style, timestamp style, code-block style, TODO keywords, tags, LaTeX code).
-- Keep output valid org-mode syntax (lists, checkboxes [ ] or [-], property drawers, timestamps <...>, SCHEDULED/DEADLINE lines, src blocks).
-- DO NOT generate any Org-mode headings (lines starting with asterisks like *, **, ***). Only produce the body content that should go under the current heading.
-- When writing math, use inline LaTeX $...$ instead of the unicode math characters, and math blocks $$ ... $$ for equations, definitions, etc.
-- When writing code, use the proper emacs org mode code block structe, and include the language next to #+BEGIN_SRC for proper syntax highlighting.
-- Do not change existing text outside what you output.
-- Keep content tightly focused on the meaning/intent of the current heading and its parent/project context. If the heading is a TODO or action, include a clear next action line and optional small checklist if appropriate.
-- Prefer concise, actionable lines. Default to producing 3–12 lines unless the context shows longer notes are typical.
-- When facts are missing, use inline placeholders like <TODO: specify>, <DATE?>, or <who?> rather than inventing specifics.
-- Output must be plain org text only (what to insert). Never add surrounding explanation, JSON wrappers, or commentary.")))
+                (gptel-make-gh-copilot "Copilot")))
 
 ;; GitHub Copilot 
 (use-package copilot
@@ -577,14 +560,16 @@
   (setq copilot-indent-offset-alist '((prog-mode . 4) (emacs-lisp-mode . 2)))
   (setq copilot-indent-offset-warning-disable t))
 
-;; Language server support
+;; Language server support (starts automatically when a server is installed
+;; for the buffer's language, stays quiet otherwise)
 (use-package lsp-mode
   :hook (
-         (java-mode . lsp-deferred)
+         (prog-mode . lsp-deferred)
          (lsp-mode  . lsp-enable-which-key-integration))
   :commands (lsp lsp-deferred)
   :init
   (setq lsp-completion-provider :none)
+  (setq lsp-warn-no-matched-clients nil)
   :config
   (setq lsp-idle-delay 0.5)
   (setq lsp-log-io nil)
@@ -603,49 +588,6 @@
   (lsp-ui-sideline-show-hover t)
   (lsp-ui-sideline-show-code-actions t))
 
-;; Java support
-(use-package lsp-java
-  :after lsp-mode
-  :init
-  (add-hook 'java-mode-hook 'lsp-deferred))
-
-;; Debugger
-(use-package dap-mode
-  :after lsp-mode
-  :init
-  (setq dap-ui-locals-expand-depth t)
-  :config
-  (dap-ui-mode 1)
-  (dap-tooltip-mode 1)
-  (tooltip-mode 1)
-  (require 'dap-java)
-  (setq dap-auto-configure-features '(sessions locals controls tooltip))
-
-  ;; Override refresh to ensure locals stay expanded and view is reset to top
-  (with-eval-after-load 'dap-ui
-    (defun my/dap-ui-expand-all-nodes ()
-      (goto-char (point-min))
-      (while (forward-button 1 nil nil t)
-        (let ((btn (button-at (point))))
-          (when (and btn (treemacs-is-node-collapsed? btn))
-            (treemacs-expand-extension-node 999)))))
-
-    (defun my/dap-ui-scroll-locals-to-top ()
-      (let ((win (get-buffer-window dap-ui--locals-buffer t)))
-        (when win
-          (with-selected-window win
-            (goto-char (point-min))
-            (set-window-start win (point-min))))))
-
-    (defun dap-ui-locals--refresh (&rest _)
-      (save-excursion
-        (setq dap-ui--locals-timer nil)
-        (lsp-treemacs-wcb-unless-killed dap-ui--locals-buffer
-                                        (lsp-treemacs-generic-update (dap-ui-locals-get-data))
-                                        (when (eq dap-ui-locals-expand-depth t)
-                                          (my/dap-ui-expand-all-nodes))))
-      (run-with-timer 0 nil #'my/dap-ui-scroll-locals-to-top))))
-
 ;; -----------------------------------------------------------------------------
 ;; ORG-MODE
 ;; -----------------------------------------------------------------------------
@@ -658,7 +600,7 @@
   (org-babel-do-load-languages
    'org-babel-load-languages
    '((emacs-lisp . t)
-     (java . t)))
+     (shell . t)))
 
   (setq org-adapt-indentation nil)
   (setq org-directory "~/org")
@@ -1009,15 +951,4 @@
   "gg"  '(gptel-send :which-key "Send")
   "gc"  '(gptel :which-key "Chat")
   "gr"  '(gptel-rewrite :which-key "Rewrite")
-  "gm"  '(gptel-menu :which-key "Menu")
-
-  ;; Debugger
-  "d"   '(:ignore t :which-key "Debug")
-  "dd"  '(dap-debug :which-key "Start Debugging")
-  "db"  '(dap-breakpoint-toggle :which-key "Toggle Breakpoint")
-  "dr"  '(dap-debug-restart :which-key "Restart")
-  "dq"  '(dap-disconnect :which-key "Quit Debugger")
-  "dn"  '(dap-next :which-key "Next Line")
-  "di"  '(dap-step-in :which-key "Step In")
-  "do"  '(dap-step-out :which-key "Step Out")
-  "dK"  '(dap-ui-repl :which-key "REPL"))
+  "gm"  '(gptel-menu :which-key "Menu"))

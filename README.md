@@ -15,7 +15,7 @@ A minimal Emacs configuration with full LSP and org-mode support.
 - **Keybinds:** Vim motions with evil-mode, and quick leader keybinds with SPC
 - **Org Mode:** The perfect zen environment for all your note taking needs.
 - **Completion:** Vertico and Corfu support with fuzzy finding.
-- **Coding:** Full support for LSP, debugging, syntax highlighting, and more.
+- **Coding:** Full support for LSP, syntax highlighting, and more.
 
 ## Prerequisites
 
