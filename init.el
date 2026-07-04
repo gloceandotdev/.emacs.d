@@ -472,6 +472,7 @@
   (erc-user-full-name "Glass Ocean")
   (erc-track-shorten-start 8)
   (erc-kill-buffer-on-part t)
+  (erc-kill-server-buffer-on-quit t)
   (erc-auto-query 'bury)
   (erc-fill-column 100)
   (erc-fill-function 'erc-fill-static)
@@ -858,9 +859,12 @@
  "gc" #'evilnc-comment-or-uncomment-lines)
 
 ;; Leader key definition
+;; SPC in normal/visual/motion; M-SPC (i.e. ESC then SPC) in insert/emacs
+;; state buffers like ERC and vterm
 (general-create-definer my-leader-def
   :prefix "SPC"
-  :states '(normal visual motion)
+  :non-normal-prefix "M-SPC"
+  :states '(normal visual motion insert emacs)
   :keymaps 'override)
 
 ;; Leader keybindings
