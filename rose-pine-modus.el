@@ -50,6 +50,12 @@
       (set-face-attribute 'corfu-annotations nil :foreground fg-subtle))
     (when (facep 'corfu-popupinfo)
       (set-face-attribute 'corfu-popupinfo nil :background bg-dim :foreground fg-main))
+    ;; Copilot inline suggestion sits on the hl-line background
+    ;; (copilot loads lazily, so defer if its face doesn't exist yet)
+    (if (facep 'copilot-overlay-face)
+        (set-face-attribute 'copilot-overlay-face nil :background highlight-low)
+      (with-eval-after-load 'copilot
+        (set-face-attribute 'copilot-overlay-face nil :background highlight-low)))
     ;; Indent guides
     (when (facep 'highlight-indent-guides-character-face)
       (set-face-attribute 'highlight-indent-guides-character-face     nil :foreground overlay)

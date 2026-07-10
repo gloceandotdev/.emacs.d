@@ -417,6 +417,14 @@
   (magit-pre-refresh . diff-hl-magit-pre-refresh)
   (magit-post-refresh . diff-hl-magit-post-refresh))
 
+;; Git interface (evil-collection provides the vim-style bindings)
+(use-package magit
+  :defer t
+  :custom
+  ;; Open magit in the current window instead of splitting,
+  ;; except for diffs which still pop up beside
+  (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
+
 ;; Highlight TODO/FIXME comments
 (use-package hl-todo
   :init
@@ -471,6 +479,10 @@
   (erc-nick "Glocean")
   (erc-user-full-name "Glass Ocean")
   (erc-track-shorten-start 8)
+  (erc-track-exclude-types '("JOIN" "PART" "QUIT" "NICK" "MODE"
+                             "324" "329" "332" "333" "353" "477"))
+  (erc-track-exclude-server-buffer t)
+  (erc-track-showcount t)
   (erc-kill-buffer-on-part t)
   (erc-kill-server-buffer-on-quit t)
   (erc-auto-query 'bury)
@@ -483,7 +495,41 @@
   (add-to-list 'erc-modules 'spelling)
   (add-to-list 'erc-modules 'scrolltobottom)
   (erc-update-modules)
-  
+
+  (defun my/erc-macos-notify (nick msg)
+    "Show a macOS notification for MSG from NICK."
+    (call-process "osascript" nil 0 nil "-e"
+                  (format "display notification %S with title %S"
+                          (substring-no-properties (erc-controls-strip msg))
+                          (concat "ERC: " (substring-no-properties nick)))))
+
+  (defun my/erc-looking-at-buffer-p (buffer)
+    "Non-nil if BUFFER is visible and Emacs is focused."
+    (and buffer
+         (get-buffer-window buffer 'visible)
+         (eq (frame-focus-state) t)))
+
+  (defun my/erc-notify-dm (proc parsed)
+    "Notify on private messages."
+    (let ((nick (car (erc-parse-user (erc-response.sender parsed))))
+          (target (car (erc-response.command-args parsed)))
+          (msg (erc-response.contents parsed)))
+      (when (and (erc-current-nick-p target)
+                 (not (erc-is-message-ctcp-and-not-action-p msg))
+                 (not (my/erc-looking-at-buffer-p (erc-get-buffer nick proc))))
+        (my/erc-macos-notify nick msg)))
+    nil)
+
+  (defun my/erc-notify-mention (match-type nickuserhost msg)
+    "Notify when someone says your nick in a channel."
+    (when (and (eq match-type 'current-nick)
+               (not (erc-server-or-unjoined-channel-buffer-p))
+               (not (my/erc-looking-at-buffer-p (current-buffer))))
+      (my/erc-macos-notify (car (erc-parse-user nickuserhost)) msg)))
+
+  (add-hook 'erc-server-PRIVMSG-functions #'my/erc-notify-dm)
+  (add-hook 'erc-text-matched-hook #'my/erc-notify-mention)
+
   (evil-set-initial-state 'erc-mode 'emacs)
 
   (add-hook 'erc-mode-hook (lambda ()
@@ -875,9 +921,11 @@
   "e"   '(treemacs :which-key "File Explorer")
   "k"   '(jinx-correct :which-key "Correct Word")
 
-  ;; Apps
-  "a"   '(:ignore t :which-key "Apps")
-  "ae"  '((lambda () (interactive) (erc-tls :server "irc.libera.chat" :port 6697 :nick "Glocean")) :which-key "ERC (Libera)")
+  ;; IRC (ERC)
+  "i"   '(:ignore t :which-key "IRC")
+  "ii"  '((lambda () (interactive) (erc-tls :server "irc.libera.chat" :port 6697 :nick "Glocean")) :which-key "Connect (Libera)")
+  "ia"  '(erc-track-switch-buffer :which-key "Goto Activity")
+  "ib"  '(erc-switch-to-buffer :which-key "Switch IRC Buffer")
 
   ;; Buffer Management
   "b"   '(:ignore t :which-key "Buffer")
@@ -949,6 +997,13 @@
   "cr"  '(lsp-rename :which-key "Rename Variable")
   "cf"  '(lsp-format-buffer :which-key "Format Buffer")
   "cQ"  '(lsp-workspace-restart :which-key "Restart LSP Server")
+
+  ;; Magit
+  "m"   '(:ignore t :which-key "Magit")
+  "mm"  '(magit-status :which-key "Status")
+  "mb"  '(magit-blame :which-key "Blame")
+  "ml"  '(magit-log-current :which-key "Log")
+  "mf"  '(magit-file-dispatch :which-key "File Actions")
 
   ;; GPTel
   "g"   '(:ignore t :which-key "GPTel")
