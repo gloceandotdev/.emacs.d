@@ -572,7 +572,7 @@
 (use-package yasnippet-snippets
   :after yasnippet)
 
-;; Spellcheck with linx
+;; Spellcheck with jinx
 (use-package jinx
   :hook (emacs-startup . global-jinx-mode)
   :bind (("M-$" . jinx-correct)
