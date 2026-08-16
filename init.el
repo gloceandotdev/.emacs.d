@@ -651,12 +651,23 @@
 
   (setq org-adapt-indentation nil)
   (setq org-directory "~/org")
-  (setq org-default-notes-file (expand-file-name "agenda/events.org" org-directory))
+  (setq org-default-notes-file (expand-file-name "scratchpad.org" org-directory))
   (setq org-capture-bookmark nil)
   (setq org-preview-latex-image-directory
         (expand-file-name "ltximg/" user-emacs-directory))
 
-  (setq org-agenda-files (list (expand-file-name "agenda" org-directory)))
+  (defvar gl/university-current-dir "~/University/Current"
+    "Directory holding the current semester's course folders.")
+
+  (defun gl/refresh-org-agenda-files ()
+    "Rebuild `org-agenda-files' from the current semester's course files."
+    (interactive)
+    (let ((uni (expand-file-name gl/university-current-dir)))
+      (setq org-agenda-files
+            (and (file-directory-p uni)
+                 (directory-files-recursively uni "\\.org\\'")))))
+
+  (gl/refresh-org-agenda-files)
 
   ;; Modern appearance settings
   (setq org-ellipsis ""
@@ -737,16 +748,81 @@
                                    (expand-file-name gl/blog-posts-dir))))
     (goto-char (point-max)))
 
+  (defvar gl/lecture-heading-regexp "^\\*+ +\\(?:Lecture\\|Week\\)\\b"
+    "Regex matching a lecture heading inside a course file.")
+
+  (defun gl/course-code ()
+    "Course code for the capture in progress, from its directory name."
+    (let ((file (or (org-capture-get :original-file) (buffer-file-name))))
+      (if file
+          (file-name-nondirectory
+           (directory-file-name (file-name-directory file)))
+        "")))
+
+  (defconst gl/file-icon "" "File icon for course file links.")
+  (defconst gl/folder-icon "" "Folder icon for slide links.")
+
+  (defun gl/course-file ()
+    "The University course file the capture was invoked from."
+    (let ((file (buffer-file-name (org-capture-get :original-buffer))))
+      (if (and file (string-match-p "/University/" file))
+          file
+        (user-error "Not in a University course file"))))
+
+  (defun gl/course-attachment-link (subdir label icon)
+    "Org link to a file picked from SUBDIR of the current course.
+Completes over the directory but accepts names not there yet."
+    (let* ((file (or (org-capture-get :original-file) (buffer-file-name)))
+           (dir (and file (expand-file-name subdir (file-name-directory file))))
+           (choices (and dir (file-directory-p dir)
+                         (directory-files dir nil "\\`[^.].*\\.[[:alnum:]]+\\'")))
+           (pick (string-trim
+                  (if choices
+                      (completing-read (format "%s file: " subdir) choices nil nil)
+                    (read-string (format "%s file name: " subdir))))))
+      (if (string-empty-p pick)
+          ""
+        (format "[[file:%s/%s][%s %s]]" subdir pick icon label))))
+
+  (defun gl/next-lecture-number ()
+    "Prompt for a lecture number, pre-filled with the next unused one."
+    (let ((buf (org-capture-get :original-buffer))
+          (n 0))
+      (when (buffer-live-p buf)
+        (with-current-buffer buf
+          (save-excursion
+            (save-restriction
+              (widen)
+              (goto-char (point-min))
+              (while (re-search-forward "^\\*+ +Lecture +\\([0-9]+\\)" nil t)
+                (setq n (max n (string-to-number (match-string 1)))))))))
+      (read-string "Lecture number: " (number-to-string (1+ n)))))
+
+  (defun gl/org-goto-current-lecture ()
+    "Put point on the lecture heading a captured assignment belongs under."
+    (unless (derived-mode-p 'org-mode)
+      (user-error "Not in an Org buffer"))
+    (org-capture-put-target-region-and-position)
+    (widen)
+    (end-of-line)
+    (unless (or (re-search-backward gl/lecture-heading-regexp nil t)
+                (progn (goto-char (point-max))
+                       (re-search-backward gl/lecture-heading-regexp nil t)))
+      (user-error "No lecture heading in %s" (buffer-name)))
+    (beginning-of-line))
+
   (setq org-capture-templates
-        '(("e" "Event" entry
-           (file (lambda () (expand-file-name "agenda/events.org" org-directory)))
-           "* %^{Event}\n%?"
+        '(("u" "University")
+
+          ("ul" "Lecture" entry
+           (file+headline gl/course-file "Lectures")
+           "* Lecture %(gl/next-lecture-number) - %^{Topic}\n\n%(gl/course-attachment-link \"Slides\" \"Lecture Slides\" gl/folder-icon)\n\n%?"
            :empty-lines 1)
 
-          ("u" "Uni" entry
-           (file (lambda () (expand-file-name "agenda/uni.org" org-directory)))
-           "* TODO %^{Course} - %^{Assignment}\nDEADLINE: %^t\n:PROPERTIES:\n:TYPE: %^{Type|Homework|Quiz|Exam|Project|Lab|Essay|Presentation}\n:END:\n\n%?"
-           :empty-lines 1)
+          ("uh" "Homework" entry
+           (function gl/org-goto-current-lecture)
+           "* TODO %(gl/course-code) - %^{Assignment}\nDEADLINE: %^t\n:PROPERTIES:\n:TYPE: %^{Type|Homework|Quiz|Exam|Project|Lab|Essay|Presentation}\n:END:\n\n%(gl/course-attachment-link \"Homeworks\" \"Open Homework\" gl/file-icon)\n%?"
+           :prepend t :empty-lines 1)
 
           ("b" "Blog post (glocean.dev)" plain
            (function gl/blog-capture-target)
@@ -818,53 +894,6 @@
                '("funclim" "Function limit"
                  "\\lim\\limits_{x \\to ?}"
                  cdlatex-position-cursor nil nil t)))
-
-;; Org-roam for atomic notes
-(use-package org-roam
-  :after org
-  :custom
-  (org-roam-directory (expand-file-name "roam" org-directory))
-  (org-roam-dailies-directory "daily/")
-  (org-roam-completion-everywhere t)
-  :config
-  (org-roam-db-autosync-mode)
-
-  (setq org-roam-node-display-template
-        (concat "${title:*} "
-                (propertize "${tags:30}" 'face 'org-tag)))
-
-  (setq org-roam-capture-templates
-        '(("d" "default" plain "%?"
-           :target (file+head "misc/${slug}.org"
-                              "#+title: ${title}\n#+date: %U\n#+filetags:\n\n")
-           :unnarrowed t)
-          ("u" "uni" plain "%?"
-           :target (file+head "uni/${slug}.org"
-                              "#+title: ${title}\n#+date: %U\n#+filetags: :uni:\n\n")
-           :unnarrowed t)
-
-          ("h" "homelab" plain "%?"
-           :target (file+head "homelab/${slug}.org"
-                              "#+title: ${title}\n#+date: %U\n#+filetags: :homelab:\n\n")
-           :unnarrowed t)
-          ("p" "personal" plain "%?"
-           :target (file+head "personal/${slug}.org"
-                              "#+title: ${title}\n#+date: %U\n#+filetags: :personal:\n\n")
-           :unnarrowed t)))
-
-  (setq org-roam-dailies-capture-templates
-        '(("d" "default" entry "* %<%H:%M>  %?"
-           :target (file+head "%<%Y-%m-%d>.org"
-                              "#+title: %<%A, %d %B %Y>\n#+filetags: :daily:\n\n")))))
-
-;; Graph UI
-(use-package org-roam-ui
-  :after org-roam
-  :custom
-  (org-roam-ui-sync-theme t)
-  (org-roam-ui-follow t)
-  (org-roam-ui-update-on-save t)
-  (org-roam-ui-open-on-start nil))
 
 ;; Enable visual line mode and disable line numbers for org mode
 (add-hook 'org-mode-hook (lambda ()
@@ -980,15 +1009,7 @@
   "os"  '((lambda () (interactive) (find-file (expand-file-name "scratchpad.org" org-directory))) :which-key "Scratchpad")
   "oc"  '(org-capture :which-key "Capture Task")
   "ot"  '(org-todo-list :which-key "Global TODOs")
-
-  ;; Org-roam bindings
-  "or"  '(:ignore t :which-key "Roam")
-  "orf" '(org-roam-node-find :which-key "Find/Create Note")
-  "ori" '(org-roam-node-insert :which-key "Insert Link")
-  "ord" '(org-roam-dailies-goto-today :which-key "Today's Journal")
-  "orD" '(org-roam-dailies-goto-date :which-key "Journal by Date")
-  "org" '(org-roam-ui-open :which-key "Graph View")
-  "orb" '(org-roam-buffer-toggle :which-key "Backlinks Buffer")
+  "or"  '(gl/refresh-org-agenda-files :which-key "Refresh Agenda Files")
 
   ;; Code/LSP
   "c"   '(:ignore t :which-key "Code")
