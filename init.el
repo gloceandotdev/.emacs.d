@@ -318,7 +318,7 @@
 (use-package consult)
 
 ;; Custom function to toggle bookmarks for a file
-(defun my/toggle-file-bookmark ()
+(defun gl/toggle-file-bookmark ()
   "Toggle a bookmark for the current file."
   (interactive)
   (require 'bookmark)
@@ -373,7 +373,7 @@
 (use-package quickrun
   :commands (quickrun)
   :init
-  (defun my/quickrun-in-vterm (&optional _prefix)
+  (defun gl/quickrun-in-vterm (&optional _prefix)
     (interactive "P")
     (save-buffer)
     (require 'quickrun)
@@ -496,39 +496,39 @@
   (add-to-list 'erc-modules 'scrolltobottom)
   (erc-update-modules)
 
-  (defun my/erc-macos-notify (nick msg)
+  (defun gl/erc-macos-notify (nick msg)
     "Show a macOS notification for MSG from NICK."
     (call-process "osascript" nil 0 nil "-e"
                   (format "display notification %S with title %S"
                           (substring-no-properties (erc-controls-strip msg))
                           (concat "ERC: " (substring-no-properties nick)))))
 
-  (defun my/erc-looking-at-buffer-p (buffer)
+  (defun gl/erc-looking-at-buffer-p (buffer)
     "Non-nil if BUFFER is visible and Emacs is focused."
     (and buffer
          (get-buffer-window buffer 'visible)
          (eq (frame-focus-state) t)))
 
-  (defun my/erc-notify-dm (proc parsed)
+  (defun gl/erc-notify-dm (proc parsed)
     "Notify on private messages."
     (let ((nick (car (erc-parse-user (erc-response.sender parsed))))
           (target (car (erc-response.command-args parsed)))
           (msg (erc-response.contents parsed)))
       (when (and (erc-current-nick-p target)
                  (not (erc-is-message-ctcp-and-not-action-p msg))
-                 (not (my/erc-looking-at-buffer-p (erc-get-buffer nick proc))))
-        (my/erc-macos-notify nick msg)))
+                 (not (gl/erc-looking-at-buffer-p (erc-get-buffer nick proc))))
+        (gl/erc-macos-notify nick msg)))
     nil)
 
-  (defun my/erc-notify-mention (match-type nickuserhost msg)
+  (defun gl/erc-notify-mention (match-type nickuserhost msg)
     "Notify when someone says your nick in a channel."
     (when (and (eq match-type 'current-nick)
                (not (erc-server-or-unjoined-channel-buffer-p))
-               (not (my/erc-looking-at-buffer-p (current-buffer))))
-      (my/erc-macos-notify (car (erc-parse-user nickuserhost)) msg)))
+               (not (gl/erc-looking-at-buffer-p (current-buffer))))
+      (gl/erc-macos-notify (car (erc-parse-user nickuserhost)) msg)))
 
-  (add-hook 'erc-server-PRIVMSG-functions #'my/erc-notify-dm)
-  (add-hook 'erc-text-matched-hook #'my/erc-notify-mention)
+  (add-hook 'erc-server-PRIVMSG-functions #'gl/erc-notify-dm)
+  (add-hook 'erc-text-matched-hook #'gl/erc-notify-mention)
 
   (evil-set-initial-state 'erc-mode 'emacs)
 
@@ -550,11 +550,11 @@
 ;; Tree-sitter for better syntax highlighting
 (use-package tree-sitter
   :config
-  (defun my/enable-tree-sitter-maybe ()
+  (defun gl/enable-tree-sitter-maybe ()
     (unless (derived-mode-p 'emacs-lisp-mode)
       (tree-sitter-mode)))
   :hook
-  (prog-mode . my/enable-tree-sitter-maybe)
+  (prog-mode . gl/enable-tree-sitter-maybe)
   (tree-sitter-after-on-hook . tree-sitter-hl-mode))
 
 ;; Language definitions for tree-sitter
@@ -677,12 +677,12 @@
   (setq org-preview-latex-default-process 'dvisvgm)
 
   ;; Manual Latex preview for daemon compatibility
-  (defun my/org-enable-latex-preview ()
+  (defun gl/org-enable-latex-preview ()
     "Enable latex preview if in a graphical environment."
     (when (display-graphic-p)
       (org-latex-preview '(16))))
 
-  (add-hook 'org-mode-hook #'my/org-enable-latex-preview)
+  (add-hook 'org-mode-hook #'gl/org-enable-latex-preview)
 
   (add-hook 'server-after-make-frame-hook
             (lambda ()
@@ -917,7 +917,7 @@
 (my-leader-def
   "SPC" '(consult-buffer :which-key "Switch Buffer")
   "."   '(find-file :which-key "Find File")
-  "r"   '(my/quickrun-in-vterm :which-key "Run Code")
+  "r"   '(gl/quickrun-in-vterm :which-key "Run Code")
   "e"   '(treemacs :which-key "File Explorer")
   "k"   '(jinx-correct :which-key "Correct Word")
 
@@ -961,7 +961,7 @@
 
   ;; Toggle
   "t"   '(:ignore t :which-key "Toggle")
-  "tb"  '(my/toggle-file-bookmark :which-key "Toggle File Bookmark")
+  "tb"  '(gl/toggle-file-bookmark :which-key "Toggle File Bookmark")
   "tt"  '(vterm-toggle-cd :which-key "Toggle VTerm")
   "te"  '(treemacs :which-key "File Explorer")
   "tl"  '(display-line-numbers-mode :which-key "Toggle Line Numbers")
