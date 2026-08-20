@@ -65,8 +65,8 @@
 
 (setq blink-cursor-blinks 0) ; Make the blinks not stop
 (blink-cursor-mode 1)
-(global-display-line-numbers-mode t) ; Enable line numbers globally
-(setq display-line-numbers-type 'relative) ; And make them relative
+(setq display-line-numbers-type 'relative) ; Make them relative
+(global-display-line-numbers-mode t) ; And enable line numbers globally
 (global-hl-line-mode t) ; Highlight the current line
 (column-number-mode t) ; Show column number in modeline
 
@@ -84,8 +84,6 @@
 (setq locate-command "mdfind") ; Use spotlight's search backend
 (setq ns-use-native-fullscreen nil) ; Disable native fullscreen to avoid issues
 (setq ns-pop-up-frames nil) ; Make files opened outside of emacs open in an existing window
-(setq mac-redisplay-dont-reset-vscroll t
-      mac-mouse-wheel-smooth-scroll nil) ; Smooth scrolling fixes
 (setq delete-by-moving-to-trash (not noninteractive)) ; Delete files to the macOS trashcan
 
 ;; Shell fixes
@@ -378,11 +376,12 @@
     (save-buffer)
     (require 'quickrun)
     (quickrun--set-executed-file)
+    (quickrun--remove-temp-files)
     (let* ((orig    quickrun--executed-file)
            (beg     (if (use-region-p) (region-beginning) (point-min)))
            (end     (if (use-region-p) (region-end)        (point-max)))
            (cmdkey  (quickrun--command-key orig))
-           (src     (if (quickrun--use-tempfile-p cmdkey)
+           (src     (if (and (use-region-p) (quickrun--use-tempfile-p cmdkey))
                         (let ((dst (quickrun--temp-name (or orig ""))))
                           (quickrun--copy-region-to-tempfile beg end dst)
                           dst)
@@ -400,7 +399,7 @@
           (vterm-send-return)))))
 
   (add-to-list 'display-buffer-alist
-               '("^\*quickrun-vterm\*.*"
+               '("\\*quickrun-vterm\\*"
                  (display-buffer-reuse-window display-buffer-at-bottom)
                  (reusable-frames . visible)
                  (window-height . 0.3))))
@@ -442,7 +441,7 @@
   (treemacs-filewatch-mode t)
   (treemacs-fringe-indicator-mode 'always)
   (treemacs-project-follow-mode t)
-  (treemacs-hide-gitignored-files-mode nil))
+  (treemacs-hide-gitignored-files-mode -1))
 
 ;; Evil integration for treemacs
 (use-package treemacs-evil
@@ -936,14 +935,14 @@ Completes over the directory but accepts names not there yet."
 ;; Leader key definition
 ;; SPC in normal/visual/motion; M-SPC (i.e. ESC then SPC) in insert/emacs
 ;; state buffers like ERC and vterm
-(general-create-definer my-leader-def
+(general-create-definer gl-leader-def
   :prefix "SPC"
   :non-normal-prefix "M-SPC"
   :states '(normal visual motion insert emacs)
   :keymaps 'override)
 
 ;; Leader keybindings
-(my-leader-def
+(gl-leader-def
   "SPC" '(consult-buffer :which-key "Switch Buffer")
   "."   '(find-file :which-key "Find File")
   "r"   '(gl/quickrun-in-vterm :which-key "Run Code")
