@@ -823,6 +823,11 @@ Completes over the directory but accepts names not there yet."
            "* TODO %(gl/course-code) - %^{Assignment}\nDEADLINE: %^t\n:PROPERTIES:\n:TYPE: %^{Type|Homework|Quiz|Exam|Project|Lab|Essay|Presentation}\n:END:\n\n%(gl/course-attachment-link \"Homeworks\" \"Open Homework\" gl/file-icon)\n%?"
            :prepend t :empty-lines 1)
 
+          ("ur" "Reading" entry
+           (file+headline gl/course-file "Readings")
+           "* %^{Reading}\n\n%(gl/course-attachment-link \"Readings\" \"Open Reading\" gl/file-icon)\n\n%?"
+           :empty-lines 1)
+
           ("b" "Blog post (glocean.dev)" plain
            (function gl/blog-capture-target)
            "#+title: %(progn gl/blog--title)\n#+date: <%<%Y-%m-%d>>\n#+filetags: %^{Tags}\n#+excerpt: %^{Excerpt}\n\n%?"
