@@ -820,7 +820,7 @@ Completes over the directory but accepts names not there yet."
 
           ("uh" "Homework" entry
            (function gl/org-goto-current-lecture)
-           "* TODO %(gl/course-code) - %^{Assignment}\nDEADLINE: %^t\n:PROPERTIES:\n:TYPE: %^{Type|Homework|Quiz|Exam|Project|Lab|Essay|Presentation}\n:END:\n\n%(gl/course-attachment-link \"Homeworks\" \"Open Homework\" gl/file-icon)\n%?"
+           "* TODO %(gl/course-code) - %^{Assignment}\nDEADLINE: %^t\n:PROPERTIES:\n:TYPE: %^{Type|Homework|Quiz|Exam|Project|Group|Lab|Essay|Presentation}\n:END:\n\n%(gl/course-attachment-link \"Homeworks\" \"Open Homework\" gl/file-icon)\n%?"
            :prepend t :empty-lines 1)
 
           ("ur" "Reading" entry
