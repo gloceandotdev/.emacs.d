@@ -664,7 +664,10 @@
     (let ((uni (expand-file-name gl/university-current-dir)))
       (setq org-agenda-files
             (and (file-directory-p uni)
-                 (directory-files-recursively uni "\\.org\\'")))))
+                 (directory-files-recursively
+                  uni "\\.org\\'" nil
+                  (lambda (dir)
+                    (not (equal (file-name-nondirectory dir) "Papers"))))))))
 
   (gl/refresh-org-agenda-files)
 
@@ -735,7 +738,7 @@
   (defvar gl/blog--title nil
     "Title of the glocean.dev blog post currently being captured.")
 
-  (defun gl/blog-slugify (title)
+  (defun gl/slugify (title)
     "Turn TITLE into a filename-safe slug."
     (string-trim (replace-regexp-in-string "[^a-z0-9]+" "-" (downcase title)) "-+" "-+"))
 
@@ -743,7 +746,7 @@
     "Prompt for a post title and visit a fresh posts/<slug>.org buffer."
     (setq gl/blog--title (read-string "Post title: "))
     (set-buffer (org-capture-target-buffer
-                 (expand-file-name (concat (gl/blog-slugify gl/blog--title) ".org")
+                 (expand-file-name (concat (gl/slugify gl/blog--title) ".org")
                                    (expand-file-name gl/blog-posts-dir))))
     (goto-char (point-max)))
 
@@ -810,6 +813,111 @@ Completes over the directory but accepts names not there yet."
       (user-error "No lecture heading in %s" (buffer-name)))
     (beginning-of-line))
 
+  (defvar gl/paper-lib-dir "~/University/lib"
+    "Directory holding the shared APA build assets.")
+
+  (defvar gl/paper--title nil
+    "Title of the paper currently being captured.")
+
+  (defun gl/course-root (&optional file)
+    "The University course directory FILE sits under, or nil."
+    (let ((dir (file-name-directory
+                (or file
+                    (and (fboundp 'org-capture-get)
+                         (org-capture-get :original-file))
+                    (buffer-file-name)
+                    ""))))
+      (catch 'found
+        (while (and dir (string-match-p "/University/" dir))
+          (let ((base (file-name-nondirectory (directory-file-name dir))))
+            (when (file-exists-p (expand-file-name (concat base ".org") dir))
+              (throw 'found dir)))
+          (setq dir (file-name-directory (directory-file-name dir))))
+        nil)))
+
+  (defun gl/course-meta (regexp)
+    "First group of REGEXP matched in the course file, or an empty string."
+    (let* ((root (gl/course-root))
+           (file (and root (expand-file-name
+                            (concat (file-name-nondirectory
+                                     (directory-file-name root)) ".org")
+                            root))))
+      (or (when (and file (file-exists-p file))
+            (with-temp-buffer
+              (insert-file-contents file)
+              (goto-char (point-min))
+              (when (re-search-forward regexp nil t)
+                (string-trim (match-string 1)))))
+          "")))
+
+  (defun gl/course-title ()
+    "Course name from the course file's title line."
+    (gl/course-meta "^#\\+TITLE: *\\(.*\\)$"))
+
+  (defun gl/course-professor ()
+    "Professor from the course file's Class Information."
+    (gl/course-meta "^Professor: *\\(.*\\)$"))
+
+  (defun gl/paper-capture-target ()
+    "Prompt for a paper title and visit a fresh Papers/<slug>.org buffer."
+    (let* ((root (or (gl/course-root)
+                     (user-error "Not in a University course file")))
+           (dir (expand-file-name "Papers" root)))
+      (setq gl/paper--title (read-string "Paper title: "))
+      (make-directory dir t)
+      (set-buffer (org-capture-target-buffer
+                   (expand-file-name (concat (gl/slugify gl/paper--title) ".org")
+                                     dir)))
+      (goto-char (point-max))))
+
+  (defun gl/paper-bibliography ()
+    "Absolute path of the bib file this paper names, or nil."
+    (save-excursion
+      (goto-char (point-min))
+      (when (re-search-forward "^#\\+bibliography:[ \t]*\\(.+?\\)[ \t]*$" nil t)
+        (expand-file-name (match-string-no-properties 1)
+                          (file-name-directory (buffer-file-name))))))
+
+  (defun gl/paper-export-docx ()
+    "Build the paper in this buffer into a docx beside it and open it."
+    (interactive)
+    (let* ((src (or (buffer-file-name)
+                    (user-error "Buffer is not visiting a file")))
+           (bib (gl/paper-bibliography))
+           (lib (expand-file-name gl/paper-lib-dir))
+           (out (concat (file-name-sans-extension src) ".docx"))
+           (log (get-buffer-create "*pandoc*"))
+           (default-directory (file-name-directory src)))
+      (when (and bib (not (file-exists-p bib)))
+        (user-error "No bibliography at %s, export it from Zotero first" bib))
+      (save-buffer)
+      (with-current-buffer log (erase-buffer))
+      (if (zerop (call-process "pandoc" nil log nil
+                               (file-name-nondirectory src)
+                               "--citeproc"
+                               (concat "--csl=" (expand-file-name "apa.csl" lib))
+                               (concat "--lua-filter=" (expand-file-name "apa.lua" lib))
+                               (concat "--reference-doc="
+                                       (expand-file-name "apa-reference.docx" lib))
+                               "-M" "reference-section-title=References"
+                               "-o" (file-name-nondirectory out)))
+          (progn
+            (when (> (buffer-size log) 0) (display-buffer log))
+            (call-process "open" nil 0 nil out)
+            (message "Exported %s" (file-name-nondirectory out)))
+        (display-buffer log)
+        (user-error "Pandoc failed, see *pandoc*"))))
+
+  (defun gl/set-course-bibliography ()
+    "Point citar at the course's refs.bib inside University org files."
+    (let* ((root (gl/course-root))
+           (bib (and root (expand-file-name "refs.bib" root))))
+      (when (and bib (file-exists-p bib))
+        (setq-local citar-bibliography (list bib))
+        (setq-local org-cite-global-bibliography (list bib)))))
+
+  (add-hook 'org-mode-hook #'gl/set-course-bibliography)
+
   (setq org-capture-templates
         '(("u" "University")
 
@@ -828,10 +936,25 @@ Completes over the directory but accepts names not there yet."
            "* %^{Reading}\n\n%(gl/course-attachment-link \"Readings\" \"Open Reading\" gl/file-icon)\n\n%?"
            :empty-lines 1)
 
+          ("up" "Paper" plain
+           (function gl/paper-capture-target)
+           "#+title: %(progn gl/paper--title)\n#+author: %^{Author}\n#+affiliation: %^{Affiliation}\n#+course: %(gl/course-title)\n#+instructor: %(gl/course-professor)\n#+date: %^t\n#+bibliography: ../refs.bib\n\n%?"
+           :unnarrowed t :empty-lines 0)
+
           ("b" "Blog post (glocean.dev)" plain
            (function gl/blog-capture-target)
            "#+title: %(progn gl/blog--title)\n#+date: <%<%Y-%m-%d>>\n#+filetags: %^{Tags}\n#+excerpt: %^{Excerpt}\n\n%?"
            :unnarrowed t :empty-lines 0))))
+
+;; Nice package for working with bibliographies
+(use-package citar
+  :after org
+  :custom
+  (citar-file-variable "file")
+  (org-cite-insert-processor 'citar)
+  (org-cite-follow-processor 'citar)
+  (org-cite-activate-processor 'citar)
+  :bind (:map org-mode-map ("C-c b" . org-cite-insert)))
 
 ;; Automatically continue lists with when pressing RET
 (use-package org-autolist
@@ -1014,6 +1137,8 @@ Completes over the directory but accepts names not there yet."
   "oc"  '(org-capture :which-key "Capture Task")
   "ot"  '(org-todo-list :which-key "Global TODOs")
   "or"  '(gl/refresh-org-agenda-files :which-key "Refresh Agenda Files")
+ "oi"  '(org-cite-insert :which-key "Insert Citation")
+ "oe"  '(gl/paper-export-docx :which-key "Export Paper to DOCX")
 
   ;; Code/LSP
   "c"   '(:ignore t :which-key "Code")
