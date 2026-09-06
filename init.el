@@ -616,6 +616,7 @@
   :init
   (setq lsp-completion-provider :none)
   (setq lsp-warn-no-matched-clients nil)
+  (setq lsp-auto-guess-root t)
   :config
   (setq lsp-idle-delay 0.5)
   (setq lsp-log-io nil)
@@ -633,6 +634,28 @@
   (lsp-ui-sideline-show-diagnostics t)
   (lsp-ui-sideline-show-hover t)
   (lsp-ui-sideline-show-code-actions t))
+
+;; -----------------------------------------------------------------------------
+;; FENNEL AND LOVE2D
+;; -----------------------------------------------------------------------------
+
+;; Fennel major mode for editing .fnl files 
+(use-package fennel-mode
+  :mode (("\\.fnl\\'" . fennel-mode)
+         ("\\.fnlm\\'" . fennel-mode)))
+
+;; Run Love2D games from within Emacs using fennel-mode and love2d-fennel 
+(use-package love2d-fennel
+  :straight (love2d-fennel :type git :host codeberg
+                           :repo "alexjgriffith/love2d-fennel.el")
+  :after fennel-mode
+  :custom
+  (love2d-fennel-program "love")
+  :bind (:map fennel-mode-map
+              ("C-c C-z" . love2d-fennel-run-love)
+              ("C-c C-k" . love2d-fennel-reload)
+              :map fennel-repl-mode-map
+              ("C-c C-z" . love2d-fennel-run-love)))
 
 ;; -----------------------------------------------------------------------------
 ;; ORG-MODE
@@ -1137,8 +1160,8 @@ Completes over the directory but accepts names not there yet."
   "oc"  '(org-capture :which-key "Capture Task")
   "ot"  '(org-todo-list :which-key "Global TODOs")
   "or"  '(gl/refresh-org-agenda-files :which-key "Refresh Agenda Files")
- "oi"  '(org-cite-insert :which-key "Insert Citation")
- "oe"  '(gl/paper-export-docx :which-key "Export Paper to DOCX")
+  "oi"  '(org-cite-insert :which-key "Insert Citation")
+  "oe"  '(gl/paper-export-docx :which-key "Export Paper to DOCX")
 
   ;; Code/LSP
   "c"   '(:ignore t :which-key "Code")
@@ -1160,4 +1183,49 @@ Completes over the directory but accepts names not there yet."
   "gg"  '(gptel-send :which-key "Send")
   "gc"  '(gptel :which-key "Chat")
   "gr"  '(gptel-rewrite :which-key "Rewrite")
-  "gm"  '(gptel-menu :which-key "Menu"))
+  "gm"  '(gptel-menu :which-key "Menu")
+
+  ;; Binds for painless lisp sexp manipulation
+  "l"   '(:ignore t :which-key "Lisp")
+  "ls"  '(sp-forward-slurp-sexp :which-key "Slurp Forward")
+  "lS"  '(sp-backward-slurp-sexp :which-key "Slurp Backward")
+  "lb"  '(sp-forward-barf-sexp :which-key "Barf Forward")
+  "lB"  '(sp-backward-barf-sexp :which-key "Barf Backward")
+  "lr"  '(sp-raise-sexp :which-key "Raise Sexp")
+  "lw"  '(sp-wrap-round :which-key "Wrap In Parens")
+  "lu"  '(sp-unwrap-sexp :which-key "Unwrap Sexp")
+  "lt"  '(sp-transpose-sexp :which-key "Transpose Sexp")
+  "lj"  '(sp-join-sexp :which-key "Join Sexp")
+  "lp"  '(sp-split-sexp :which-key "Split Sexp"))
+
+;; Game (LOVE) keybindings
+(gl-leader-def
+  :keymaps 'fennel-mode-map
+  "d"   '(:ignore t :which-key "Game (LOVE)")
+  "dd"  '(love2d-fennel-run-love :which-key "Run/Restart Game")
+  "dq"  '((lambda () (interactive)
+            (let* ((buf (get-buffer "*Fennel REPL*"))
+                   (proc (and buf (get-buffer-process buf))))
+              (if proc (kill-process proc) (message "No game running."))))
+          :which-key "Stop Game")
+  "dz"  '((lambda () (interactive) (switch-to-lisp t)) :which-key "Goto REPL")
+  "dr"  '(love2d-fennel-reload :which-key "Reload This Module")
+  "de"  '(fennel-eval-toplevel-form :which-key "Eval Top-Level Form")
+  "dx"  '(fennel-eval-last-sexp :which-key "Eval Last Sexp")
+  "dv"  '(fennel-eval-region :which-key "Eval Region")
+  "dh"  '(fennel-show-documentation :which-key "Show Documentation")
+  "dm"  '(fennel-macroexpand :which-key "Macroexpand")
+  "dl"  '(fennel-view-compilation :which-key "View Compiled Lua")
+  "dc"  '((lambda () (interactive)
+            (let ((default-directory
+                   (or (locate-dominating-file default-directory "makefile")
+                       default-directory)))
+              (compile "make check")))
+          :which-key "Check Syntax"))
+(gl-leader-def
+  :keymaps 'fennel-repl-mode-map
+  "d"   '(:ignore t :which-key "Game (LOVE)")
+  "dd"  '(love2d-fennel-run-love :which-key "Run/Restart Game")
+  "dq"  '(fennel-repl-quit :which-key "Kill REPL Buffer")
+  "do"  '(fennel-repl-clear-buffer :which-key "Clear Output")
+  "dh"  '(fennel-show-documentation :which-key "Show Documentation"))
