@@ -632,7 +632,7 @@
   (lsp-ui-doc-delay 0.5)
   (lsp-ui-doc-position 'at-point)
   (lsp-ui-sideline-show-diagnostics t)
-  (lsp-ui-sideline-show-hover t)
+  (lsp-ui-sideline-show-hover nil)
   (lsp-ui-sideline-show-code-actions t))
 
 ;; -----------------------------------------------------------------------------
