@@ -55,7 +55,8 @@
 ;; -----------------------------------------------------------------------------
 
 ;; Set default font
-(add-to-list 'default-frame-alist '(font . "JetBrainsMono Nerd Font-14"))
+;; (add-to-list 'default-frame-alist '(font . "JetBrainsMono Nerd Font-14"))
+(add-to-list 'default-frame-alist '(font . "DepartureMono Nerd Font-13"))
 
 ;; Basic UI and editing preferences
 (setq-default cursor-type '(box . 2) ; Set cursor to a blinking box
@@ -194,21 +195,18 @@
   (dashboard-projects-backend 'projectile))
 
 ;; Indent guides
-(use-package highlight-indent-guides
-  :hook ((prog-mode . highlight-indent-guides-mode)
-         (prog-mode . (lambda () (setq-local line-spacing 0.18)))) ; increase line height
-  :config
-  (setq highlight-indent-guides-method 'character)
-  (setq highlight-indent-guides-character ?│)
-  (setq highlight-indent-guides-responsive 'top)
-  (setq highlight-indent-guides-delay 0)
-  (setq highlight-indent-guides-auto-enabled nil)
-  ;; Set colors at load time by reading the active theme (theme function handles switches)
-  (let ((dark (eq (car custom-enabled-themes) 'modus-vivendi)))
-    (set-face-attribute 'highlight-indent-guides-character-face nil
-                        :foreground (if dark "#403d52" "#cecacd"))
-    (set-face-attribute 'highlight-indent-guides-top-character-face nil
-                        :foreground (if dark "#908caa" "#797593"))))
+(use-package indent-bars
+  :defer t
+  :init
+  (add-hook 'prog-mode-hook #'indent-bars-mode 90)
+  :custom
+  (indent-bars-prefer-character t) ; drop once stipples work on this Emacs, requires Emacs 31 but I am too lazy to build it.
+  (indent-bars-color '(vertical-border))
+  (indent-bars-color-by-depth nil)
+  (indent-bars-highlight-current-depth '(:face shadow))
+  (indent-bars-depth-update-delay 0))
+
+(add-hook 'prog-mode-hook (lambda () (setq-local line-spacing 0.18))) ; increase line height
 
 ;; Smooth scroll
 (use-package ultra-scroll

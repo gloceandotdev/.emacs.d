@@ -1,4 +1,24 @@
-;;; rose-pine-modus.el --- Rose Pine colors via Modus palette overrides because existing themes suck -*- lexical-binding: t; -*-
+rose-pine-modus.el --- Rose Pine colors via Modus palette overrides because existing themes suck -*- lexical-binding: t; -*-
+;; This package is not good, it is extremely janky and has a lot of stuff that is specific to my setup.
+
+(defconst rose-pine-modus--bar-font "JetBrainsMono Nerd Font")
+
+(defun rose-pine-modus--frame-font ()
+  "Return (FAMILY . POINTS) from the `font' entry of `default-frame-alist'.
+Falls back to the current `default' face."
+  (if-let* ((name (alist-get 'font default-frame-alist))
+            (spec (font-spec :name name)))
+      (cons (format "%s" (font-get spec :family))
+            (round (font-get spec :size)))
+    (cons (face-attribute 'default :family)
+          (/ (face-attribute 'default :height) 10))))
+
+(defun rose-pine-modus--bar-font-scale (family points)
+  (when-let* ((main (font-info (format "%s-%d" family points))))
+    (cl-loop for pt in (list points (1- points) (1+ points) (- points 2) (+ points 2))
+             for bar = (font-info (format "%s-%d" rose-pine-modus--bar-font pt))
+             when (and bar (= (aref bar 10) (aref main 10))) ; space widths match
+             return (/ (float pt) points))))
 
 (defun rose-pine-modus--apply (appearance)
   "Load the Rose Pine variant matching APPEARANCE (`light' or `dark')."
@@ -20,12 +40,17 @@
          (foam          (if dark "#9ccfd8" "#56949f"))
          (gold          (if dark "#f6c177" "#ea9d34"))
          (pine          (if dark "#31748f" "#286983")))
-    (set-face-attribute 'default              nil :height 140 :family "JetBrainsMono Nerd Font")
-    (set-face-attribute 'fixed-pitch          nil :family "JetBrainsMono Nerd Font")
-    (set-face-attribute 'fixed-pitch-serif    nil :family "JetBrainsMono Nerd Font")
-    (set-face-attribute 'line-number          nil :family "JetBrainsMono Nerd Font")
-    (set-face-attribute 'line-number-current-line nil
-                        :family "JetBrainsMono Nerd Font" :foreground iris :weight 'bold)
+    (pcase-let ((`(,family . ,points) (rose-pine-modus--frame-font)))
+      (set-face-attribute 'default              nil :height (* 10 points) :family family)
+      (set-face-attribute 'fixed-pitch          nil :family family)
+      (set-face-attribute 'fixed-pitch-serif    nil :family family)
+      (set-face-attribute 'line-number          nil :family family)
+      (set-face-attribute 'line-number-current-line nil
+                          :family family :foreground iris :weight 'bold)
+      (when-let* ((scale (rose-pine-modus--bar-font-scale family points)))
+        (face-spec-set 'indent-bars-face
+                       `((t (:family ,rose-pine-modus--bar-font :height ,scale)))
+                       'face-defface-spec)))
     (set-face-attribute 'fringe  nil :background bg-main)
     (set-face-attribute 'hl-line nil :background highlight-low)
     (when (facep 'dashboard-banner-logo-title)
@@ -56,10 +81,6 @@
         (set-face-attribute 'copilot-overlay-face nil :background highlight-low)
       (with-eval-after-load 'copilot
         (set-face-attribute 'copilot-overlay-face nil :background highlight-low)))
-    ;; Indent guides
-    (when (facep 'highlight-indent-guides-character-face)
-      (set-face-attribute 'highlight-indent-guides-character-face     nil :foreground overlay)
-      (set-face-attribute 'highlight-indent-guides-top-character-face nil :foreground fg-subtle))
     (when (facep 'diff-hl-change)
       (set-face-attribute 'diff-hl-change nil :background bg-main :foreground rose)
       (set-face-attribute 'diff-hl-delete nil :background bg-main :foreground love)
