@@ -1,4 +1,4 @@
-rose-pine-modus.el --- Rose Pine colors via Modus palette overrides because existing themes suck -*- lexical-binding: t; -*-
+;;; rose-pine-modus.el --- Rose Pine colors via Modus palette overrides because existing themes suck -*- lexical-binding: t; -*-
 ;; This package is not good, it is extremely janky and has a lot of stuff that is specific to my setup.
 
 (defconst rose-pine-modus--bar-font "JetBrainsMono Nerd Font")
