@@ -771,7 +771,7 @@
                                    (expand-file-name gl/blog-posts-dir))))
     (goto-char (point-max)))
 
-  (defvar gl/lecture-heading-regexp "^\\*+ +\\(?:Lecture\\|Week\\)\\b"
+  (defvar gl/lecture-heading-regexp "^\\*+ +\\(?:Lecture\\|Week\\|TODOs\\)\\b"
     "Regex matching a lecture heading inside a course file.")
 
   (defun gl/course-code ()
