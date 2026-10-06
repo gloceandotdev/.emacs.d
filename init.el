@@ -55,8 +55,8 @@
 ;; -----------------------------------------------------------------------------
 
 ;; Set default font
-;; (add-to-list 'default-frame-alist '(font . "JetBrainsMono Nerd Font-14"))
-(add-to-list 'default-frame-alist '(font . "DepartureMono Nerd Font-13"))
+(add-to-list 'default-frame-alist '(font . "JetBrainsMono Nerd Font-14"))
+;; (add-to-list 'default-frame-alist '(font . "DepartureMono Nerd Font-13"))
 
 ;; Basic UI and editing preferences
 (setq-default cursor-type '(box . 2) ; Set cursor to a blinking box
