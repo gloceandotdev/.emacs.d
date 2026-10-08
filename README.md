@@ -1,10 +1,6 @@
-# 🪷 Glocean's .emacs.d
+# Glocean's .emacs.d
 
 A minimal Emacs configuration with full LSP and org-mode support.
-
-<img alt="Dashboard" src="assets/dashboard.png" />
-
----
 
 <img alt="Editor" src="assets/editor.png" />
 
