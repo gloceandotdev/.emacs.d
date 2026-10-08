@@ -158,8 +158,24 @@
 ;; UI ENHANCEMENTS AND APPEARANCE
 ;; -----------------------------------------------------------------------------
 
-;; Load the custom Rose Pine Modus theme
-(load-file (expand-file-name "rose-pine-modus.el" user-emacs-directory))
+;; Swap current implementation with this once theme is published
+;; (use-package meadow-theme
+;;   :straight (:host github :repo "gloceandotdev/emacs-meadow-theme")
+;;   :no-require t ...)
+(use-package meadow-theme-lib
+  :straight nil
+  :load-path "~/Projects/emacs-meadow-theme"
+  :demand t
+  :init
+  (setq meadow-theme-heading-heights '(1.3 1.2 1.1))
+  :config
+  (defun gl/meadow-follow-system (appearance)
+    (meadow-theme-load (if (eq appearance 'light) 'meadow-light 'meadow)))
+  (if (boundp 'ns-system-appearance)
+      (progn
+        (add-hook 'ns-system-appearance-change-functions #'gl/meadow-follow-system)
+        (gl/meadow-follow-system ns-system-appearance))
+    (meadow-theme-load 'meadow)))
 
 ;; Nerd icons
 (use-package nerd-icons)
@@ -169,6 +185,9 @@
   :after (nerd-icons projectile)
   :init
   (setq initial-buffer-choice (lambda () (get-buffer-create "*dashboard*")))
+  (custom-set-faces
+   '(dashboard-banner-logo-title ((t (:weight thin :height 320))))
+   '(dashboard-heading ((t (:weight thin :height 170)))))
   :config
   (defun dashboard-resize-on-hook (&optional _)
     (let ((space-win (get-buffer-window dashboard-buffer-name))
@@ -181,8 +200,17 @@
   (add-hook 'dashboard-mode-hook (lambda () 
                                    (setq-local global-hl-line-mode nil)
                                    (hl-line-mode -1)))
-  (setq dashboard-startup-banner (expand-file-name "assets/xemacs_color_pine.svg" user-emacs-directory)
-        dashboard-banner-logo-title "Welcome to Emacs!"
+  ;; Banner follows Meadow / Meadow Light
+  (defun gl/dashboard-meadow-banner ()
+    (setq dashboard-startup-banner
+          (expand-file-name (if (eq (meadow-theme-current) 'meadow-light)
+                                "assets/xemacs_color_meadow_light.svg"
+                              "assets/xemacs_color_meadow.svg")
+                            user-emacs-directory))
+    (dashboard-resize-on-hook))
+  (add-hook 'meadow-theme-after-load-hook #'gl/dashboard-meadow-banner)
+  (gl/dashboard-meadow-banner)
+  (setq dashboard-banner-logo-title "Welcome to Emacs!"
         dashboard-items '((recents   . 5)
                           (projects  . 5)
                           (bookmarks . 5)))
@@ -1006,9 +1034,15 @@ Completes over the directory but accepts names not there yet."
   (setq org-modern-table-vertical 1)
   (setq org-modern-table-horizontal 0.2)
   (setq org-modern-block-fringe nil)
-  (setq org-modern-todo-faces
-        '(("WAIT" :background "#6e6a86" :foreground "#e0def4")
-          ("PROJ" :background "#c4a7e7" :foreground "#191724"))))
+  ;; Rebuilt on every theme switch so the labels follow Meadow and Meadow Light
+  (defun gl/org-modern-todo-faces ()
+    (setq org-modern-todo-faces
+          `(("WAIT" :background ,(meadow-theme-color 'overlay)
+             :foreground ,(meadow-theme-color 'subtle))
+            ("PROJ" :background ,(meadow-theme-color 'lavender-tint)
+             :foreground ,(meadow-theme-color 'lavender)))))
+  (gl/org-modern-todo-faces)
+  (add-hook 'meadow-theme-after-load-hook #'gl/org-modern-todo-faces))
 
 ;; Center the content for a better reading experience
 (use-package visual-fill-column
