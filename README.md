@@ -11,7 +11,7 @@ A minimal Emacs configuration with full LSP and org-mode support.
 ## Features
 
 - **Fast:** Many optimizations and lazy package loading.
-- **Elegant:** Uses the beautiful Rose Pine theme, alongside nerd icons and a gorgeous dashboard.
+- **Elegant:** Uses Meadow, my own light and dark theme, alongside nerd icons and a gorgeous dashboard.
 - **Keybinds:** Vim motions with evil-mode, and quick leader keybinds with SPC
 - **Org Mode:** The perfect zen environment for all your note taking needs.
 - **Completion:** Vertico and Corfu support with fuzzy finding.
