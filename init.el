@@ -158,14 +158,10 @@
 ;; UI ENHANCEMENTS AND APPEARANCE
 ;; -----------------------------------------------------------------------------
 
-;; Swap current implementation with this once theme is published
-;; (use-package meadow-theme
-;;   :straight (:host github :repo "gloceandotdev/emacs-meadow-theme")
-;;   :no-require t ...)
-(use-package meadow-theme-lib
-  :straight nil
-  :load-path "~/Projects/emacs-meadow-theme"
-  :demand t
+;; Meadow theme, following the macOS appearance
+(use-package meadow-theme
+  :straight (:host github :repo "gloceandotdev/emacs-meadow-theme")
+  :no-require t
   :init
   (setq meadow-theme-heading-heights '(1.3 1.2 1.1))
   :config
