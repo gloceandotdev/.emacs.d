@@ -167,6 +167,11 @@
   :config
   (defun gl/meadow-follow-system (appearance)
     (meadow-theme-load (if (eq appearance 'light) 'meadow-light 'meadow)))
+  ;; Tell fish in vterm which Meadow variant to use
+  (defun gl/meadow-export-variant ()
+    (setenv "MEADOW_VARIANT"
+            (if (eq (meadow-theme-current) 'meadow-light) "light" "dark")))
+  (add-hook 'meadow-theme-after-load-hook #'gl/meadow-export-variant)
   (if (boundp 'ns-system-appearance)
       (progn
         (add-hook 'ns-system-appearance-change-functions #'gl/meadow-follow-system)
